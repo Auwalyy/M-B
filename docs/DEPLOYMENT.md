@@ -39,6 +39,8 @@ Environment (see [apps/api/.env.example](../apps/api/.env.example)):
 | `JWT_ACCESS_SECRET` | 48+ random bytes, unique per environment. **Never reuse the development value.** |
 | `TRUST_PROXY` | `1` behind Render, Railway, Nginx or a load balancer |
 | `SMTP_URL`, `MAIL_FROM` | your email provider |
+| `CLOUDINARY_URL` | **required**: `cloudinary://<api_key>:<api_secret>@<cloud_name>` from the Cloudinary dashboard. The API will not start in production without it. |
+| `CLOUDINARY_FOLDER` | e.g. `mudassir` (use `mudassir-staging` for staging so images do not mix) |
 | `API_DOCS_ENABLED` | `false` (or leave unset) unless docs must be public |
 
 Health checks: `GET /health` (liveness) and `GET /health/ready` (database connected).
@@ -66,4 +68,5 @@ The owner signs in and must choose a new password straight away. Branches and st
 - [ ] Production `JWT_ACCESS_SECRET` set and stored in the host's secret manager.
 - [ ] `WEB_URL` matches the real web origin exactly, or every cookie request is rejected with `ORIGIN_NOT_ALLOWED`.
 - [ ] Atlas backups enabled.
+- [ ] Cloudinary: set an upload size limit and enable "Strict transformations" if only the named sizes should be generated.
 - [ ] Seed branch details replaced with real addresses and phone numbers.

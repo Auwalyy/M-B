@@ -43,7 +43,11 @@ All seed accounts use the password `Password123` (or `SEED_PASSWORD`).
 | Sales Staff | sales.kan01@mb.test · sales.kan02@mb.test · sales.abj01@mb.test | KAN01 · KAN02 · ABJ01 |
 | Customer | customer@mb.test | (prefers KAN01) |
 
-Seed branch addresses and phone numbers are placeholders. Replace them in **Admin → Branches** before going live.
+The seed also creates a small catalogue (TVs, fridges, fans and a kaftan with sizes) with opening stock at each branch. Seed branch addresses and phone numbers are placeholders. Replace them in **Admin → Branches** before going live.
+
+## Product images (Cloudinary)
+
+Set `CLOUDINARY_URL` in `apps/api/.env`. Copy it from the Cloudinary dashboard ("API environment variable", format `cloudinary://<key>:<secret>@<cloud>`). Images are uploaded from the API with signed requests, so the secret never reaches the browser. Without it (development only), images are stored in `apps/api/uploads` and served at `/uploads`. The API refuses to start in production without Cloudinary.
 
 ## Common commands
 
@@ -62,7 +66,7 @@ Seed branch addresses and phone numbers are placeholders. Replace them in **Admi
 Built in phases (see the roadmap in [docs/FOUNDATION.md](docs/FOUNDATION.md#5-development-roadmap)).
 
 - [x] **Phase 1: Foundation.** Authentication, roles and permissions, branch isolation, branches, staff, company settings, activity log, admin shell, public branch pages
-- [ ] Phase 2: Products, categories, brands, per-branch inventory, stock transfers, CRM
+- [x] **Phase 2: Business management.** Catalogue (categories, brands, products with variants and Cloudinary images), per-branch inventory with a movement ledger, low-stock alerts, count corrections with approval, inter-branch transfers, customers (central identity, communication history, segments), enquiries and the public contact form
 - [ ] Phase 3: Storefront catalogue, search, cart, checkout
 - [ ] Phase 4: Reservations, orders, payments (Paystack), delivery, WhatsApp
 - [ ] Phase 5: Dashboards and reports

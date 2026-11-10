@@ -21,6 +21,9 @@ export default async function StoreLayout({ children }: { children: ReactNode })
             <Link href="/branches" className="rounded-md px-3 py-2 text-sm font-medium text-ink-muted hover:bg-black/5 hover:text-ink">
               Branches
             </Link>
+            <Link href="/contact" className="rounded-md px-3 py-2 text-sm font-medium text-ink-muted hover:bg-black/5 hover:text-ink">
+              Contact
+            </Link>
             <UserNav />
           </nav>
         </div>
@@ -38,6 +41,7 @@ export default async function StoreLayout({ children }: { children: ReactNode })
             <h2 className="text-sm font-semibold text-white">Visit us</h2>
             <ul className="mt-3 space-y-2 text-sm">
               <li><Link href="/branches" className="hover:text-white">All branches and opening hours</Link></li>
+              <li><Link href="/contact" className="hover:text-white">Send us a message</Link></li>
             </ul>
           </div>
           {settings && (

@@ -93,7 +93,7 @@ type ListQuery = z.output<typeof listBranchesQuery>;
 
 /** Visitors see active branches with public fields. Staff see the branches in their scope, with full details. */
 export async function listBranches(q: ListQuery, auth: AuthContext | null): Promise<Page<PublicBranchDto | BranchDto>> {
-  const staff = auth?.can(PERMISSIONS.BRANCHES_READ) ? auth : null;
+  const staff = q.view !== 'public' && auth?.can(PERMISSIONS.BRANCHES_READ) ? auth : null;
   const filter: Record<string, unknown> = staff
     ? { ...staff.branchFilter(PERMISSIONS.BRANCHES_READ, '_id'), ...(q.status ? { status: q.status } : {}) }
     : { status: 'active' };

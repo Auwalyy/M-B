@@ -90,6 +90,10 @@ export const keys2 = {
   enquiry: (id: string) => ['enquiry', id] as const,
 };
 
+/** Every active branch (public details), regardless of the user's own branches. */
+export const useAllBranches = () =>
+  useQuery({ queryKey: ['branches', 'public'], queryFn: () => api.get<{ id: string; name: string; code: string }[]>('/branches', { view: 'public', limit: 100 }), staleTime: 5 * 60_000 });
+
 export const useCategories = () => useQuery({ queryKey: keys2.categories, queryFn: () => api.get<CategoryDto[]>('/categories') });
 export const useBrands = () => useQuery({ queryKey: keys2.brands, queryFn: () => api.get<BrandDto[]>('/brands') });
 

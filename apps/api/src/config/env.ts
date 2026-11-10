@@ -36,7 +36,11 @@ const schema = z
     MAIL_FROM: z.string().default('Mudassir & Brothers <no-reply@mudassirbrothers.com>'),
 
     /** cloudinary://<api_key>:<api_secret>@<cloud_name>. Required in production. */
-    CLOUDINARY_URL: z.string().regex(/^cloudinary:\/\/[^:]+:[^@]+@.+$/,'Expected cloudinary://<api_key>:<api_secret>@<cloud_name>').optional(),
+    // An empty value (as in .env.example) means "not configured".
+    CLOUDINARY_URL: z.preprocess(
+      (v) => (v === '' ? undefined : v),
+      z.string().regex(/^cloudinary:\/\/[^:]+:[^@]+@.+$/, 'Expected cloudinary://<api_key>:<api_secret>@<cloud_name>').optional(),
+    ),
     CLOUDINARY_FOLDER: z.string().default('mudassir'),
     /** Local image storage for development and tests (ignored when CLOUDINARY_URL is set). */
     UPLOAD_DIR: z.string().default('uploads'),

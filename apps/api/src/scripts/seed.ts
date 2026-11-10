@@ -19,6 +19,9 @@ import { ensureSystemRoles, getRoleByKey } from '../modules/roles/role.service';
 import { getSettingsDoc } from '../modules/settings/settings.service';
 import { syncBranchAdmins } from '../modules/users/user.service';
 import { User } from '../modules/users/user.model';
+import { Brand, Category, Product } from '../modules/catalog/catalog.models';
+import { applyStockChange } from '../modules/inventory/inventory.service';
+import { slugify } from '../core/text/slug';
 
 const args = new Set(process.argv.slice(2));
 const PASSWORD = process.env.SEED_PASSWORD ?? 'Password123';
@@ -149,10 +152,87 @@ async function main() {
   );
   await Customer.updateOne({ _id: customer._id }, { $set: { user: customerUser._id } });
 
+  await seedCatalog(branchIds);
+
   console.warn('\nSeed complete. Sign in with any of these (password: %s):', process.env.SEED_PASSWORD ? '$SEED_PASSWORD' : PASSWORD);
   for (const u of [...USERS, { email: 'customer@mb.test', role: 'CUSTOMER', branches: ['KAN01'] }]) {
     console.warn(`  ${u.role.padEnd(13)} ${u.email.padEnd(24)} ${u.branches.join(', ')}`);
   }
+}
+
+/** Development catalogue with opening stock, recorded through the normal stock ledger. Runs only on an empty catalogue. */
+async function seedCatalog(branchIds: Map<string, mongoose.Types.ObjectId>) {
+  if (await Product.exists({})) return;
+  const naira = (n: number) => n * 100;
+  const cat = async (name: string, parent?: { _id: mongoose.Types.ObjectId; ancestors: mongoose.Types.ObjectId[] }) =>
+    Category.create({ name, slug: slugify(name), parent: parent?._id ?? null, ancestors: parent ? [...parent.ancestors, parent._id] : [] });
+  const electronics = await cat('Electronics');
+  const tvs = await cat('Televisions', electronics);
+  const appliances = await cat('Home Appliances');
+  const cooling = await cat('Fridges & Freezers', appliances);
+  const fans = await cat('Fans & Air Conditioners', appliances);
+  const fashion = await cat('Fashion');
+
+  const brand = async (name: string) => Brand.create({ name, slug: slugify(name) });
+  const [samsung, lg, hisense, thermocool, binatone] = await Promise.all(['Samsung', 'LG', 'Hisense', 'Thermocool', 'Binatone'].map(brand));
+
+  type Seed = { name: string; sku: string; category: typeof tvs; brand?: typeof samsung; price: number; discount?: number; cost: number; featured?: boolean; specs?: [string, string][]; variants?: { sku: string; size: string; color?: string }[]; stock: Record<string, number> };
+  const products: Seed[] = [
+    { name: 'Samsung 55" Crystal UHD 4K Smart TV', sku: 'SAM-TV-055', category: tvs, brand: samsung, price: 685_000, discount: 649_000, cost: 560_000, featured: true, specs: [['Screen size', '55"'], ['Resolution', '4K UHD'], ['Warranty', '2 years']], stock: { KAN01: 12, KAN02: 4, ABJ01: 7 } },
+    { name: 'Hisense 43" Full HD Smart TV', sku: 'HIS-TV-043', category: tvs, brand: hisense, price: 315_000, cost: 260_000, specs: [['Screen size', '43"'], ['Resolution', 'Full HD']], stock: { KAN01: 9, ABJ01: 3 } },
+    { name: 'LG 2-Door Refrigerator 360L', sku: 'LG-FRG-360', category: cooling, brand: lg, price: 845_000, cost: 700_000, featured: true, specs: [['Capacity', '360 litres'], ['Energy rating', 'A+']], stock: { KAN01: 3, ABJ01: 5 } },
+    { name: 'Thermocool Chest Freezer 250L', sku: 'THC-FRZ-250', category: cooling, brand: thermocool, price: 498_000, discount: 475_000, cost: 400_000, specs: [['Capacity', '250 litres']], stock: { KAN01: 6, KAN02: 6, ABJ01: 2 } },
+    { name: 'Binatone 18" Standing Fan', sku: 'BIN-FAN-018', category: fans, brand: binatone, price: 42_000, cost: 31_000, stock: { KAN01: 40, KAN02: 25, ABJ01: 15 } },
+    { name: 'Hisense 1.5HP Split Air Conditioner', sku: 'HIS-AC-15', category: fans, brand: hisense, price: 465_000, cost: 380_000, stock: { ABJ01: 4 } },
+    {
+      name: 'Embroidered Kaftan',
+      sku: 'MB-KAF-001',
+      category: fashion,
+      price: 35_000,
+      cost: 18_000,
+      variants: [{ sku: 'MB-KAF-001-M', size: 'M', color: 'White' }, { sku: 'MB-KAF-001-L', size: 'L', color: 'White' }, { sku: 'MB-KAF-001-XL', size: 'XL', color: 'Sky blue' }],
+      stock: { KAN01: 8, KAN02: 10 },
+    },
+  ];
+
+  const settings = await getSettingsDoc();
+  for (const s of products) {
+    const product = await Product.create({
+      name: s.name,
+      slug: slugify(s.name),
+      sku: s.sku,
+      category: s.category._id,
+      categoryPath: [...s.category.ancestors, s.category._id],
+      brand: s.brand?._id ?? null,
+      price: naira(s.price),
+      discountPrice: s.discount ? naira(s.discount) : null,
+      costPrice: naira(s.cost),
+      description: `${s.name}. Genuine product with warranty, available for pickup or delivery from Mudassir & Brothers branches.`,
+      specifications: (s.specs ?? []).map(([label, value]) => ({ label, value })),
+      hasVariants: Boolean(s.variants),
+      variants: s.variants ?? [],
+      isFeatured: Boolean(s.featured),
+      status: 'active',
+    });
+    for (const [code, qty] of Object.entries(s.stock)) {
+      const lines = product.hasVariants ? product.variants.map((v) => ({ variantId: v._id, sku: v.sku, qty: Math.ceil(qty / product.variants.length) })) : [{ variantId: null, sku: product.sku, qty }];
+      for (const l of lines) {
+        await applyStockChange({
+          branch: branchIds.get(code)!,
+          product: product._id,
+          variantId: l.variantId,
+          sku: l.sku,
+          delta: l.qty,
+          type: 'stock_in',
+          reference: { kind: 'StockReceipt', id: new mongoose.Types.ObjectId(), label: 'Opening stock (seed)' },
+          reason: 'Opening stock',
+          performedBy: null,
+          lowStockDefault: settings.lowStockDefault,
+        });
+      }
+    }
+  }
+  console.warn(`Seeded ${products.length} products in 6 categories with opening stock.`);
 }
 
 main()

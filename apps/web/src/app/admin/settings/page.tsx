@@ -21,6 +21,7 @@ interface FormValues {
   whatsapp: string;
   address: string;
   lowStockDefault: string;
+  adjustmentApprovalThreshold: string;
   pendingExpiryHours: string;
   confirmedHoldHours: string;
   maxQuantityPerItem: string;
@@ -39,6 +40,7 @@ const toForm = (s: SettingsDto): FormValues => ({
   whatsapp: formatPhone(s.whatsapp),
   address: s.address ?? '',
   lowStockDefault: String(s.lowStockDefault),
+  adjustmentApprovalThreshold: String(s.adjustmentApprovalThreshold),
   pendingExpiryHours: String(s.reservation.pendingExpiryHours),
   confirmedHoldHours: String(s.reservation.confirmedHoldHours),
   maxQuantityPerItem: String(s.reservation.maxQuantityPerItem),
@@ -57,6 +59,7 @@ const toPayload = (v: FormValues) => ({
   whatsapp: v.whatsapp,
   address: v.address,
   lowStockDefault: Number(v.lowStockDefault),
+  adjustmentApprovalThreshold: Number(v.adjustmentApprovalThreshold),
   reservation: {
     pendingExpiryHours: Number(v.pendingExpiryHours),
     confirmedHoldHours: Number(v.confirmedHoldHours),
@@ -145,6 +148,7 @@ function SettingsForm({ settings, readOnly }: { settings: SettingsDto; readOnly:
           <div className="grid gap-4 pt-2 sm:grid-cols-2">
             {text('vatRatePercent', 'VAT rate (%)', { type: 'number' })}
             {text('lowStockDefault', 'Default low-stock level', { type: 'number', hint: 'Units at or below which a product is flagged as low stock.' })}
+            {text('adjustmentApprovalThreshold', 'Stock corrections needing approval', { type: 'number', hint: 'Corrections larger than this many units per product need a second person to approve.' })}
           </div>
           <Field label="Receipt footer" error={errors.receiptFooter?.message}>
             {(p) => <Textarea {...p} disabled={readOnly} {...register('receiptFooter')} />}

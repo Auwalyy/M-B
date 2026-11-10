@@ -1,6 +1,6 @@
 'use client';
 
-import { CATALOG_STATUSES, type CategoryDto, PRODUCT_STATUSES, type ProductDto, productRuleIssues, productSchema, updateProductSchema } from '@mb/shared';
+import { CATALOG_STATUSES, type CategoryDto, type PRODUCT_STATUSES, type ProductDto, productRuleIssues, productSchema, updateProductSchema } from '@mb/shared';
 import { Plus, Trash2 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Controller, type FieldPath, useFieldArray, useForm } from 'react-hook-form';

@@ -2,7 +2,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { getStorage } from '../src/core/storage/storage';
 import { Product } from '../src/modules/catalog/catalog.models';
-import { FakeStorage, pngBytes } from './fakeStorage';
+import { type FakeStorage, pngBytes } from './fakeStorage';
 import { as, makeApp, makeCatalog, makeWorld, stockIn } from './helpers';
 
 const app = makeApp();

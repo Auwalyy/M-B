@@ -66,6 +66,8 @@ export const BRANCH_PROFILE_FIELDS = [
 export const listBranchesQuery = paginationQuery.extend({
   status: z.enum(BRANCH_STATUSES).optional(),
   state: z.enum(NIGERIAN_STATES).optional(),
+  /** public: every active branch with public fields, even for signed-in staff (e.g. choosing a transfer destination). */
+  view: z.enum(['public', 'manage']).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(100),
 });
 

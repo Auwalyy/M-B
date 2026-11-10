@@ -142,3 +142,11 @@ describe('updating branches', () => {
     expect((await as(app, world.sessions.kanoAdmin).post(`/api/v1/branches/${world.branches.kano._id}/deactivate`)).status).toBe(403);
   });
 });
+
+describe('public branch view for staff', () => {
+  it('lets a branch admin list every active branch (public fields) to choose a transfer partner', async () => {
+    const res = await as(app, world.sessions.kanoAdmin).get('/api/v1/branches?view=public');
+    expect(res.body.data.map((b: { code: string }) => b.code).sort()).toEqual(['ABJ01', 'KAN01']);
+    expect(res.body.data[0]).not.toHaveProperty('admins');
+  });
+});

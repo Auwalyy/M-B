@@ -120,3 +120,25 @@ describe('temporary passwords', () => {
     }
   });
 });
+
+describe('money and image helpers', () => {
+  it('parses naira input into kobo', async () => {
+    const { parseNaira, nairaInputValue } = await import('./utils');
+    expect(parseNaira('650,000')).toBe(65_000_000);
+    expect(parseNaira('₦1,250.50')).toBe(125_050);
+    expect(parseNaira('')).toBeNull();
+    expect(parseNaira('12.345')).toBeNaN();
+    expect(parseNaira('abc')).toBeNaN();
+    expect(nairaInputValue(125_050)).toBe('1250.5');
+    expect(nairaInputValue(null)).toBe('');
+  });
+
+  it('asks Cloudinary for sized, auto-format images and leaves other URLs alone', async () => {
+    const { imageUrl } = await import('./utils');
+    expect(imageUrl('https://res.cloudinary.com/mb/image/upload/v1/mudassir/products/a.jpg', 400)).toBe(
+      'https://res.cloudinary.com/mb/image/upload/f_auto,q_auto,c_limit,w_400/v1/mudassir/products/a.jpg',
+    );
+    expect(imageUrl('/uploads/products/a.jpg', 400)).toBe('/uploads/products/a.jpg');
+    expect(imageUrl(null, 400)).toBeNull();
+  });
+});

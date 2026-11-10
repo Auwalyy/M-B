@@ -7,5 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${SITE}/`, changeFrequency: 'daily', priority: 1 },
     { url: `${SITE}/branches`, changeFrequency: 'weekly', priority: 0.8 },
+    { url: `${SITE}/contact`, changeFrequency: 'monthly', priority: 0.5 },
   ];
 }

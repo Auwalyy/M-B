@@ -1,8 +1,8 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed) · Phase 1 complete
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–2 complete
 
-Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Background jobs (`core/jobs`) and media storage (`core/storage`) arrive with the phases that need them (2 and 4). The transactional outbox and its worker exist already.
+Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Media storage (`core/storage`) is in place, with Cloudinary in production and local disk in development. Background jobs (`core/jobs`) arrive with reservations in Phase 4. The transactional outbox and its worker exist already.
 
 This document defines the foundation for the multi-branch retail and e-commerce platform. It has five parts: system architecture, folder structure, database schema, API module breakdown, and development roadmap. Section 6 lists the decisions that need sign-off before Phase 1 starts.
 
@@ -611,7 +611,9 @@ Each phase ends with: all tests green, a typecheck and lint pass, an updated API
 8. Seed script: 2 Kano branches, 1 Abuja branch, super admin, branch admins, sales staff.
 - **Tests:** auth flows, token reuse, rate limits, **branch isolation matrix** (every role against every branch-scoped endpoint: own branch versus another branch).
 
-### Phase 2: Business management
+### Phase 2: Business management ✅
+Implementation notes: stock adjustments use the statuses `pending → applied | rejected` (applying happens on approval). Corrections within the company threshold (default 10 units per line) by someone who may approve are applied at once. Branch-scoped staff can list every active branch (public fields only) to pick a transfer partner.
+
 Categories (tree), brands, products with variants and image upload, per-branch inventory, stock in/out, the movement ledger, low-stock detection, adjustments with approval, the inter-branch transfer workflow, customers/CRM (lookup and de-duplication by phone, interactions, segments), enquiries. Admin screens for each.
 - **Tests:** concurrent stock operations (parallel decrements never go negative), transfer state machine, adjustment approval rules, CRM scoping.
 

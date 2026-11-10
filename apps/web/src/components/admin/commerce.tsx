@@ -6,7 +6,7 @@ import { type InputHTMLAttributes, type ReactNode, forwardRef, useDeferredValue,
 import { Button } from '@/components/ui/button';
 import { Badge, Skeleton } from '@/components/ui/display';
 import { Input, Select } from '@/components/ui/field';
-import { useBranches, useInventory, useProducts } from '@/lib/queries';
+import { useAllBranches, useBranches, useInventory, useProducts } from '@/lib/queries';
 import { cn, imageUrl } from '@/lib/utils';
 
 // ------------------------------------------------------------------ money
@@ -60,6 +60,7 @@ export function BranchSelect({
   label = 'Branch',
   only,
   className,
+  everyBranch,
 }: {
   value: string;
   onChange: (id: string) => void;
@@ -68,9 +69,13 @@ export function BranchSelect({
   /** Restrict choices (e.g. branches where the user may receive stock). */
   only?: (id: string) => boolean;
   className?: string;
+  /** List every active branch, not only the user's own. */
+  everyBranch?: boolean;
 }) {
-  const branches = useBranches({ status: 'active' });
-  const list = (branches.data?.data ?? []).filter((b) => !only || only(b.id));
+  const mine = useBranches({ status: 'active' });
+  const every = useAllBranches();
+  const branches = everyBranch ? { isLoading: every.isLoading, list: every.data ?? [] } : { isLoading: mine.isLoading, list: mine.data?.data ?? [] };
+  const list = branches.list.filter((b) => !only || only(b.id));
   if (branches.isLoading) return <Skeleton className={cn('h-10 w-48', className)} />;
   return (
     <Select aria-label={label} value={value} onChange={(e) => onChange(e.target.value)} className={cn('w-52', className)} disabled={!allowAll && list.length === 1}>

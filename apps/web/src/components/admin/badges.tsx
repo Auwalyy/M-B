@@ -65,3 +65,5 @@ export function actionTone(action: string): Tone {
   if (/created|granted|activated/.test(action)) return 'success';
   return 'info';
 }
+
+export const SOURCE_LABEL: Record<string, string> = { online: 'Online', walk_in: 'Walk-in', whatsapp: 'WhatsApp', phone: 'Phone', guest_checkout: 'Guest checkout' };

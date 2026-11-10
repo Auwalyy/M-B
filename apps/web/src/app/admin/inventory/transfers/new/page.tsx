@@ -58,13 +58,13 @@ export default function NewTransferPage() {
         <Card>
           <CardHeader title="Route" />
           <CardBody className="flex flex-wrap items-end gap-3">
-            <Field label="From" required>{() => <BranchSelect value={from} onChange={setFrom} />}</Field>
+            <Field label="From" required>{() => <BranchSelect value={from} onChange={setFrom} everyBranch />}</Field>
             <ArrowRight className="mb-3 h-5 w-5 text-ink-faint" aria-hidden />
-            <Field label="To" required>{() => <BranchSelect value={to} onChange={setTo} only={(id) => id !== from} />}</Field>
+            <Field label="To" required>{() => <BranchSelect value={to} onChange={setTo} only={(id) => id !== from} everyBranch />}</Field>
           </CardBody>
         </Card>
         <Card>
-          <CardHeader title="Products" description="Availability shown is at the sending branch." />
+          <CardHeader title="Products" description="Stock available at the sending branch is shown when you manage that branch." />
           <CardBody><LineItems lines={lines} onChange={setLines} mode="quantity" branch={from} emptyHint="Search above to add products." /></CardBody>
         </Card>
         <Field label="Note for head office">{(p) => <Textarea {...p} rows={2} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Why is this transfer needed?" />}</Field>
