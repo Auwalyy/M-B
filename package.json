@@ -1,0 +1,35 @@
+{
+  "name": "mudassir-brothers",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Mudassir & Brothers multi-branch retail and e-commerce platform",
+  "type": "module",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev -w @mb/api\" \"npm run dev -w @mb/web\"",
+    "dev:api": "npm run dev -w @mb/api",
+    "dev:web": "npm run dev -w @mb/web",
+    "db:dev": "npm run db:dev -w @mb/api",
+    "seed": "npm run seed -w @mb/api",
+    "build": "npm run build -w @mb/api && npm run build -w @mb/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.0",
+    "concurrently": "^10.0.7",
+    "eslint": "^10.14.0",
+    "globals": "^17.0.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.2"
+  }
+}

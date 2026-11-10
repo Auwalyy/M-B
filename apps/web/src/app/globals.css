@@ -1,0 +1,79 @@
+@import 'tailwindcss';
+
+/*
+ * Mudassir & Brothers design tokens.
+ * Deep green signals trust and stability; the warm gold accent marks primary
+ * commercial moments. Surfaces are warm neutrals rather than cold greys.
+ */
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --color-brand-50: #eef6f2;
+  --color-brand-100: #d5e9df;
+  --color-brand-200: #abd3c0;
+  --color-brand-300: #78b69b;
+  --color-brand-400: #4a9577;
+  --color-brand-500: #2b785c;
+  --color-brand-600: #1c6049;
+  --color-brand-700: #0f4c3a;
+  --color-brand-800: #0b3a2c;
+  --color-brand-900: #072a20;
+
+  --color-accent-50: #fbf6ea;
+  --color-accent-100: #f5e8c7;
+  --color-accent-300: #e2bd6a;
+  --color-accent-500: #b8862b;
+  --color-accent-600: #9a6d1f;
+  --color-accent-700: #7a5518;
+
+  --color-canvas: #f6f5f1;
+  --color-surface: #ffffff;
+  --color-subtle: #faf9f6;
+  --color-line: #e6e3db;
+  --color-line-strong: #d4d0c4;
+  --color-ink: #1c2421;
+  --color-ink-muted: #5f6964;
+  --color-ink-faint: #8a928e;
+
+  --color-danger-50: #fdf0ee;
+  --color-danger-600: #c0392b;
+  --color-danger-700: #a12d22;
+  --color-warning-50: #fdf6e7;
+  --color-warning-700: #8a5a0b;
+  --color-success-50: #ecf7f0;
+  --color-success-700: #1b6b41;
+  --color-info-50: #edf4fb;
+  --color-info-700: #1f5a8f;
+
+  --radius-xl: 0.875rem;
+  --shadow-card: 0 1px 2px rgb(28 36 33 / 0.04), 0 1px 3px rgb(28 36 33 / 0.06);
+  --shadow-pop: 0 10px 30px -10px rgb(28 36 33 / 0.25);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand-500);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

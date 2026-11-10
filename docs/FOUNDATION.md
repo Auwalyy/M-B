@@ -1,6 +1,8 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Draft for approval** · Date: 2026-11-10
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed) · Phase 1 complete
+
+Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Background jobs (`core/jobs`) and media storage (`core/storage`) arrive with the phases that need them (2 and 4). The transactional outbox and its worker exist already.
 
 This document defines the foundation for the multi-branch retail and e-commerce platform. It has five parts: system architecture, folder structure, database schema, API module breakdown, and development roadmap. Section 6 lists the decisions that need sign-off before Phase 1 starts.
 
