@@ -105,6 +105,15 @@ export default function EnquiryPage() {
           </Card>
         </div>
         <aside className="space-y-6">
+          {canManage && e.status !== 'converted' && e.status !== 'closed' && (
+            <Card>
+              <CardHeader title="Turn into a sale" description="Prefills the customer and closes this enquiry when saved." />
+              <CardBody className="flex flex-col gap-2">
+                {user?.permissions.includes(PERMISSIONS.ORDERS_CREATE) && <ButtonLink href={`/admin/orders/new?enquiry=${e.id}`}>Create order</ButtonLink>}
+                {user?.permissions.includes(PERMISSIONS.RESERVATIONS_CREATE) && <ButtonLink href={`/admin/reservations/new?enquiry=${e.id}`} variant="secondary">Reserve items</ButtonLink>}
+              </CardBody>
+            </Card>
+          )}
           {canManage && (
             <Card>
               <CardHeader title="Handling" />
@@ -134,7 +143,7 @@ export default function EnquiryPage() {
               {e.customer ? (
                 <ButtonLink href={`/admin/customers/${e.customer.id}`} variant="secondary" size="sm">Open customer profile</ButtonLink>
               ) : (
-                user?.permissions.includes(PERMISSIONS.CUSTOMERS_CREATE) && (
+                user?.permissions.includes(PERMISSIONS.CUSTOMERS_CREATE) && e.status !== 'converted' && (
                   <ButtonLink href={`/admin/customers/new?phone=${encodeURIComponent(e.contact.phone)}&name=${encodeURIComponent(e.contact.name)}`} variant="secondary" size="sm">
                     <UserPlus className="h-4 w-4" /> Register as customer
                   </ButtonLink>

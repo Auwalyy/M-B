@@ -4,6 +4,8 @@ import { env } from './config/env';
 import { logger } from './config/logger';
 import { startOutboxWorker, stopOutboxWorker } from './core/events/outbox';
 import { assertStorageConfigured, getStorage } from './core/storage/storage';
+import { startJobs, stopJobs } from './core/jobs/scheduler';
+import './jobs';
 import { ensureSystemRoles } from './modules/roles/role.service';
 import { getSettingsDoc } from './modules/settings/settings.service';
 
@@ -19,6 +21,7 @@ async function main() {
   await ensureSystemRoles();
   await getSettingsDoc();
   startOutboxWorker();
+  if (env.jobsEnabled) startJobs();
   logger.info({ storage: getStorage().name }, 'Image storage ready');
 
   const { app } = createApp();
@@ -29,6 +32,7 @@ async function main() {
   const shutdown = (signal: string) => {
     logger.info({ signal }, 'Shutting down');
     stopOutboxWorker();
+    stopJobs();
     server.close(() => {
       disconnectDatabase()
         .catch(() => undefined)

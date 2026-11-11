@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Dialog as D, DropdownMenu as DM } from 'radix-ui';
 import { type ReactNode, useEffect, useState } from 'react';
 import { Logo } from '@/components/brand';
+import { NotificationBell } from './notification-bell';
 import { useAuth } from '@/lib/auth';
 import { activeHref, visibleNav } from '@/lib/nav';
 import { cn } from '@/lib/utils';
@@ -111,8 +112,8 @@ export function AdminShell({ user, children }: { user: AuthUserDto; children: Re
   useEffect(() => setDrawer(false), [pathname]);
 
   return (
-    <div className="min-h-dvh lg:pl-64">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 lg:block">
+    <div className="min-h-dvh lg:pl-64 print:pl-0">
+      <aside className="fixed inset-y-0 left-0 hidden w-64 lg:block print:hidden">
         <Sidebar user={user} />
       </aside>
 
@@ -130,13 +131,16 @@ export function AdminShell({ user, children }: { user: AuthUserDto; children: Re
         </D.Portal>
       </D.Root>
 
-      <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-6">
+      <header className="sticky top-0 z-30 flex h-16 print:hidden items-center justify-between gap-3 border-b border-line bg-surface/90 px-4 backdrop-blur sm:px-6">
         <button className="rounded-md p-2 text-ink-muted hover:bg-black/5 lg:hidden" onClick={() => setDrawer(true)} aria-label="Open menu">
           <Menu className="h-5 w-5" />
         </button>
         <div className="lg:hidden"><Logo compact href="/admin" /></div>
         <div className="hidden lg:block" />
-        <UserMenu user={user} />
+        <div className="flex items-center gap-1">
+          <NotificationBell />
+          <UserMenu user={user} />
+        </div>
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:py-8">{children}</main>

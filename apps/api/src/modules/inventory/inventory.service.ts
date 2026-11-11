@@ -36,6 +36,7 @@ import { type IImage, type IVariant, Product, variantLabel } from '../catalog/ca
 import { productRef, resolveStockItem, stockLevel } from '../catalog/catalog.service';
 import { getSettingsDoc } from '../settings/settings.service';
 import { User } from '../users/user.model';
+import { notifyBranchTeam, notifyHeadOffice, notifyUsers } from '../notifications/notification.service';
 import {
   type IInventory,
   Inventory,
@@ -187,6 +188,40 @@ export async function applyReservation(c: ReservationChange): Promise<IInventory
   return after;
 }
 
+/**
+ * Completes a sale of units that were held for an order: on-hand and reserved both drop.
+ * Used when a pickup order is completed or a delivery order leaves the branch.
+ */
+export async function applySale(c: Omit<ReservationChange, 'delta'> & { quantity: number }): Promise<void> {
+  const key = { product: c.product, variantId: c.variantId, branch: c.branch };
+  const after = await Inventory.findOneAndUpdate(
+    { ...key, reserved: { $gte: c.quantity }, quantity: { $gte: c.quantity } },
+    { $inc: { quantity: -c.quantity, reserved: -c.quantity } },
+    { returnDocument: 'after' },
+  ).lean();
+  if (!after) throw new AppError(409, 'RESERVATION_MISMATCH', `Held stock for ${c.sku} does not match the order. Check the stock history.`);
+  await InventoryMovement.create([
+    {
+      inventory: after._id, product: c.product, variantId: c.variantId, sku: c.sku, branch: c.branch, type: 'sale',
+      quantityDelta: -c.quantity, reservedDelta: -c.quantity, balanceAfter: after.quantity, reference: c.reference, reason: c.reason,
+      performedBy: c.performedBy ? new Types.ObjectId(c.performedBy) : null,
+    },
+  ]);
+}
+
+/** Puts sold units back on the shelf (returned delivery, refund with restock). */
+export async function applyReturn(c: Omit<ReservationChange, 'delta' | 'lowStockDefault'> & { quantity: number }): Promise<void> {
+  const key = { product: c.product, variantId: c.variantId, branch: c.branch };
+  const after = await Inventory.findOneAndUpdate(key, { $inc: { quantity: c.quantity }, $setOnInsert: { sku: c.sku, reserved: 0, reorderLevel: null, isAvailable: true } }, { upsert: true, returnDocument: 'after' }).lean();
+  await InventoryMovement.create([
+    {
+      inventory: after!._id, product: c.product, variantId: c.variantId, sku: c.sku, branch: c.branch, type: 'return',
+      quantityDelta: c.quantity, reservedDelta: 0, balanceAfter: after!.quantity, reference: c.reference, reason: c.reason,
+      performedBy: c.performedBy ? new Types.ObjectId(c.performedBy) : null,
+    },
+  ]);
+}
+
 registerOutboxHandler('inventory.low_stock', async (payload) => {
   const inv = await Inventory.findById(String(payload.inventoryId)).lean();
   if (!inv) return;
@@ -201,6 +236,12 @@ registerOutboxHandler('inventory.low_stock', async (payload) => {
   let recipients = await User.find({ roleKey: 'BRANCH_ADMIN', status: 'active', branches: inv.branch, email: { $type: 'string' } }).select('email fullName').lean();
   if (!recipients.length) recipients = await User.find({ roleKey: 'SUPER_ADMIN', status: 'active', email: { $type: 'string' } }).select('email fullName').lean();
   const name = variant ? `${product.name} (${variantLabel(variant)})` : product.name;
+  await notifyBranchTeam(inv.branch, P.INVENTORY_STOCK_IN, {
+    type: 'inventory.low_stock',
+    title: `Low stock: ${name}`,
+    body: `${inv.quantity - inv.reserved} available at ${branch.code} (reorder level ${inv.reorderLevel ?? settings.lowStockDefault}).`,
+    link: `/admin/inventory?branch=${branch._id}&lowStock=true`,
+  });
   for (const r of recipients) {
     await sendMailNow(
       lowStockEmail(r.email!, r.fullName, {
@@ -523,6 +564,7 @@ export async function createAdjustment(auth: AuthContext, input: z.output<typeof
       },
     ]);
     if (autoApply) await applyAdjustment(adj!, auth.userId);
+    else await notifyBranchTeam(branch._id, P.INVENTORY_APPROVE_ADJUSTMENT, { type: 'inventory.adjustment_pending', title: `Stock correction ${adj!.reference} needs approval`, body: `${auth.fullName}: ${input.reason}`, link: '/admin/inventory/adjustments' }, true);
     await audit({ action: autoApply ? 'inventory.adjustment_applied' : 'inventory.adjustment_requested', actor: auth, branch: branch._id, entity: { kind: 'StockAdjustment', id: adj!._id, label: adj!.reference }, meta: { items: input.items, reason: input.reason } }, meta);
     return adj!._id;
   });
@@ -641,6 +683,8 @@ export async function createTransfer(auth: AuthContext, input: z.output<typeof t
         ],
       },
     ]);
+    if (autoApprove) await notifyBranchTeam(from._id, P.INVENTORY_STOCK_OUT, { type: 'transfer.approved', title: `Send transfer ${t!.reference}`, body: `Prepare and dispatch the items to ${to.name}.`, link: `/admin/inventory/transfers/${t!._id}` });
+    else await notifyHeadOffice(P.INVENTORY_TRANSFER_APPROVE, { type: 'transfer.requested', title: `Transfer ${t!.reference} needs approval`, body: `${from.name} → ${to.name}, requested by ${auth.fullName}.`, link: `/admin/inventory/transfers/${t!._id}` });
     await audit({ action: 'inventory.transfer_requested', actor: auth, branch: from._id, entity: { kind: 'StockTransfer', id: t!._id, label: t!.reference }, meta: { to: to.code, items: input.items } }, meta);
     return t!._id;
   });
@@ -688,6 +732,10 @@ export async function actOnTransfer(auth: AuthContext, id: string, action: Trans
     t!.status = rule.to;
     t!.history.push({ status: rule.to, by: new Types.ObjectId(auth.userId), at: new Date(), note });
     await t!.save(); // optimistic concurrency: two people dispatching at once -> one gets 409
+    const tLink = `/admin/inventory/transfers/${t!._id}`;
+    if (rule.to === 'approved') await notifyBranchTeam(t!.fromBranch, P.INVENTORY_STOCK_OUT, { type: 'transfer.approved', title: `Send transfer ${t!.reference}`, body: 'Head office approved it. Prepare and dispatch the items.', link: tLink });
+    if (rule.to === 'in_transit') await notifyBranchTeam(t!.toBranch, P.INVENTORY_STOCK_IN, { type: 'transfer.in_transit', title: `Transfer ${t!.reference} is on its way`, body: 'Count the items when they arrive, then confirm receipt.', link: tLink });
+    if (['received', 'rejected', 'cancelled'].includes(rule.to)) await notifyUsers([t!.requestedBy], { type: `transfer.${rule.to}`, title: `Transfer ${t!.reference} ${rule.to}`, body: note ?? `The transfer was ${rule.to}.`, link: tLink });
     await audit({ action: `inventory.transfer_${rule.to}`, actor: auth, branch: action === 'receive' ? t!.toBranch : t!.fromBranch, entity: { kind: 'StockTransfer', id: t!._id, label: t!.reference }, meta: { note } }, meta);
   });
   return transferDto(auth, new Types.ObjectId(id));

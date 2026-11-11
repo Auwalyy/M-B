@@ -13,6 +13,8 @@ export interface ISetting {
   logoUrl?: string;
   lowStockDefault: number;
   adjustmentApprovalThreshold: number;
+  pendingOrderExpiryHours: number;
+  bankTransfer?: { bankName: string; accountName: string; accountNumber: string } | null;
   reservation: { pendingExpiryHours: number; confirmedHoldHours: number; maxQuantityPerItem: number };
   guestCheckoutEnabled: boolean;
   pricesIncludeVat: boolean;
@@ -36,6 +38,8 @@ const settingSchema = new Schema<ISetting>(
     logoUrl: String,
     lowStockDefault: { type: Number, default: 5, min: 0 },
     adjustmentApprovalThreshold: { type: Number, default: 10, min: 0 },
+    pendingOrderExpiryHours: { type: Number, default: 48, min: 1 },
+    bankTransfer: { type: new Schema({ bankName: String, accountName: String, accountNumber: String }, { _id: false }), default: null },
     reservation: {
       pendingExpiryHours: { type: Number, default: 24 },
       confirmedHoldHours: { type: Number, default: 48 },

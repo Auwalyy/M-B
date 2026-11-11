@@ -47,6 +47,22 @@ const schema = z
     UPLOAD_DIR: z.string().default('uploads'),
     MAX_UPLOAD_MB: z.coerce.number().min(1).max(20).default(5),
 
+    /** Paystack secret key (sk_test_… or sk_live_…). Card payments are offered only when set. */
+    PAYSTACK_SECRET_KEY: z.preprocess((v) => (v === '' ? undefined : v), z.string().regex(/^sk_(test|live)_\w+$/, 'Expected sk_test_… or sk_live_…').optional()),
+    PAYSTACK_BASE_URL: z.url().default('https://api.paystack.co'),
+
+    /** WhatsApp Business Platform (Cloud API). Automated messages are sent only when all are set. */
+    WHATSAPP_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+    WHATSAPP_PHONE_NUMBER_ID: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+    WHATSAPP_APP_SECRET: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+    WHATSAPP_VERIFY_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().optional()),
+    WHATSAPP_API_VERSION: z.string().default('v21.0'),
+    WHATSAPP_TEMPLATE_LANGUAGE: z.string().default('en'),
+    /** Approved template names; each receives positional text parameters. */
+    WHATSAPP_TEMPLATE_ORDER_UPDATE: z.string().default('order_update'),
+    WHATSAPP_TEMPLATE_RESERVATION_UPDATE: z.string().default('reservation_update'),
+
+    JOBS_ENABLED: bool.optional(),
     OUTBOX_POLL_MS: z.coerce.number().int().min(250).default(3000),
     API_DOCS_ENABLED: bool.optional(),
   })
@@ -56,6 +72,9 @@ const schema = z
     isTest: env.NODE_ENV === 'test',
     cookieSecure: env.COOKIE_SECURE ?? env.NODE_ENV === 'production',
     apiDocsEnabled: env.API_DOCS_ENABLED ?? env.NODE_ENV !== 'production',
+    paystackEnabled: Boolean(env.PAYSTACK_SECRET_KEY),
+    whatsappEnabled: Boolean(env.WHATSAPP_TOKEN && env.WHATSAPP_PHONE_NUMBER_ID),
+    jobsEnabled: env.JOBS_ENABLED ?? env.NODE_ENV !== 'test',
     corsOrigins: [env.WEB_URL, ...env.CORS_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)],
   }));
 

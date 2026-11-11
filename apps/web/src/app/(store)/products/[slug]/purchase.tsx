@@ -1,7 +1,9 @@
 'use client';
 
 import type { BranchAvailabilityDto, PublicProductDto, StockLevel } from '@mb/shared';
-import { Check, MapPin, MessageCircle, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { CalendarClock, Check, MapPin, MessageCircle, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { WhatsAppLink } from '@/components/store/whatsapp-link';
+import { ReserveDialog } from './reserve-dialog';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { whatsappLink } from '@/components/store/branch-card';
@@ -26,6 +28,7 @@ export function Purchase({ product, availability, companyName }: { product: Publ
   const [branchId, setBranchId] = useState<string>('');
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [reserving, setReserving] = useState(false);
 
   // Default to the branch already chosen in the cart, else the first branch that has stock.
   useEffect(() => {
@@ -150,10 +153,19 @@ export function Purchase({ product, availability, companyName }: { product: Publ
       )}
       {added && <Link href="/cart" className={buttonClasses('secondary', 'md', 'w-full')}>View cart and check out</Link>}
 
-      <a href={enquiry} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4 text-sm hover:border-brand-300">
+      {selectedLevel !== 'out' && (!product.hasVariants || variantId) && (
+        <Button variant="secondary" className="w-full" onClick={() => setReserving(true)}>
+          <CalendarClock className="h-4 w-4" /> Reserve at {selected?.branch.name ?? 'this branch'} and pay when you collect
+        </Button>
+      )}
+      {reserving && selected && (
+        <ReserveDialog product={product} variantId={variantId || null} quantity={qty} branch={selected.branch} onClose={() => setReserving(false)} />
+      )}
+
+      <WhatsAppLink context="product" refId={product.slug} branch={selected?.branch.id} href={enquiry} className="flex items-center gap-3 rounded-xl border border-line bg-surface p-4 text-sm hover:border-brand-300">
         <MessageCircle className="h-6 w-6 shrink-0 text-brand-600" aria-hidden />
         <span><span className="block font-semibold">Ask about this product on WhatsApp</span><span className="text-ink-muted">Message {selected?.branch.name ?? 'the branch'} directly. We usually reply within the hour during opening times.</span></span>
-      </a>
+      </WhatsAppLink>
     </div>
   );
 }

@@ -15,7 +15,7 @@ export default async function StoreLayout({ children }: { children: ReactNode })
       <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
         Skip to content
       </a>
-      <header className="sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b print:hidden border-line bg-surface/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4">
           <Logo compact className="sm:hidden" />
           <Logo className="hidden sm:inline-flex" />
@@ -33,7 +33,7 @@ export default async function StoreLayout({ children }: { children: ReactNode })
 
       <main id="main" className="flex-1">{children}</main>
 
-      <footer className="mt-16 bg-brand-900 text-brand-100">
+      <footer className="mt-16 print:hidden bg-brand-900 text-brand-100">
         <div className="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:grid-cols-3">
           <div>
             <Logo inverse />

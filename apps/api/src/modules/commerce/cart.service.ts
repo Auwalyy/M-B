@@ -213,9 +213,19 @@ export interface QuoteResult {
 
 export async function quote(owner: CartOwner, input: z.output<typeof quoteSchema>, customerId: Types.ObjectId | null): Promise<QuoteResult> {
   const cart = await findCart(owner);
+  return { ...(await priceItems(cart?.items ?? [], cart?.branch ?? null, input, customerId)), cart };
+}
+
+/** Prices any list of items at a branch: used by checkout, staff orders and reservation conversion. */
+export async function priceItems(
+  items: CartDoc['items'],
+  branchId: Types.ObjectId | null,
+  input: z.output<typeof quoteSchema>,
+  customerId: Types.ObjectId | null,
+): Promise<Omit<QuoteResult, 'cart'>> {
   const problems: string[] = [];
-  const branch = await branchInfo(cart?.branch);
-  const lines = cart ? await resolveLines({ items: cart.items, branch: branch?._id ?? null }, branch?.name) : [];
+  const branch = await branchInfo(branchId);
+  const lines = items.length ? await resolveLines({ items, branch: branch?._id ?? null }, branch?.name) : [];
   if (!lines.length) problems.push('Your cart is empty.');
   if (!branch) problems.push('Choose the branch you want to order from.');
   for (const l of lines) if (l.dto.problem) problems.push(`${l.dto.product.name}${l.dto.variant ? ` (${l.dto.variant.label})` : ''}: ${l.dto.problem}`);
@@ -251,7 +261,6 @@ export async function quote(owner: CartOwner, input: z.output<typeof quoteSchema
   if (promotion?.freeDelivery) deliveryFee = 0;
 
   return {
-    cart,
     lines,
     branch,
     promotion,

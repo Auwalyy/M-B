@@ -7,6 +7,8 @@ import {
   deliveryZoneSchema,
   idParams,
   listOrdersQuery,
+  orderStatusSchema,
+  staffOrderSchema,
   listZonesQuery,
   paginationQuery,
   promotionSchema,
@@ -23,7 +25,8 @@ import type { AuthContext } from '../../core/auth/AuthContext';
 import { assertTrustedOrigin } from '../../core/http/origin';
 import type { ModuleRouter } from '../../core/http/route';
 import { type CartOwner, clearCart, getCart, mergeGuestCart, newGuestToken, quote, setCartBranch, setCartItem } from './cart.service';
-import { cancelMyOrder, getMyOrder, getOrder, listMyOrders, listOrders, placeOrder, staffCancelOrder, trackOrder } from './order.service';
+import { cancelMyOrder, createStaffOrder, getMyOrder, getOrder, listMyOrders, listOrders, placeOrder, staffCancelOrder, trackOrder, transitionOrder } from './order.service';
+import { orderReceipt } from '../transactions/payment.service';
 import { createPromotion, createZone, listPromotions, listPublicPromotions, listZones, updatePromotion, updateZone } from './promotion.service';
 
 const P = PERMISSIONS;
@@ -156,8 +159,21 @@ export function registerOrderRoutes(m: ModuleRouter): void {
     query: trackOrderQuery,
     handler: ({ query }) => trackOrder(query.reference, query.phone),
   });
+  m.route({ method: 'get', path: '/mine/:reference/receipt', summary: 'Receipt for one of your orders', params: referenceParams, handler: ({ params, auth }) => orderReceipt(auth, { reference: params.reference }, false) });
+  m.route({ method: 'post', path: '/', summary: 'Create an order for a walk-in, phone or WhatsApp customer (confirmed at once; holds stock)', permission: P.ORDERS_CREATE, body: staffOrderSchema, handler: ({ body, auth, meta }) => createStaffOrder(auth, body, meta) });
   m.route({ method: 'get', path: '/', summary: 'Orders at your branches', permission: P.ORDERS_READ, query: listOrdersQuery, handler: ({ query, auth }) => listOrders(auth, query) });
   m.route({ method: 'get', path: '/:id', summary: 'An order', permission: P.ORDERS_READ, params: idParams, handler: ({ params, auth }) => getOrder(auth, params.id) });
+  m.route({ method: 'get', path: '/:id/receipt', summary: 'Receipt for an order', permission: P.ORDERS_READ, params: idParams, handler: ({ params, auth }) => orderReceipt(auth, { id: params.id }, true) });
+  m.route({
+    method: 'post',
+    path: '/:id/status',
+    summary: 'Move an order to its next step (confirmed, processing, ready for pickup, out for delivery, completed)',
+    permission: P.ORDERS_UPDATE_STATUS,
+    params: idParams,
+    body: orderStatusSchema,
+    status: 200,
+    handler: ({ params, body, auth, meta }) => transitionOrder(auth, params.id, body.to, body.note, meta),
+  });
   m.route({
     method: 'post',
     path: '/:id/cancel',

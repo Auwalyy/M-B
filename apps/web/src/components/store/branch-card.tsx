@@ -3,6 +3,7 @@ import { MapPin, MessageCircle, Navigation, Phone } from 'lucide-react';
 import { buttonClasses } from '@/components/ui/button';
 import { Badge } from '@/components/ui/display';
 import { OpenStatus } from './open-status';
+import { WhatsAppLink } from './whatsapp-link';
 
 export function whatsappLink(e164: string, message: string): string {
   return `https://wa.me/${toWhatsAppNumber(e164)}?text=${encodeURIComponent(message)}`;
@@ -67,9 +68,9 @@ export function BranchCard({ branch, companyName = 'Mudassir & Brothers' }: { br
       </div>
 
       <div className="mt-auto flex flex-wrap gap-2 pt-5">
-        <a href={whatsappLink(branch.whatsapp, message)} target="_blank" rel="noopener noreferrer" className={buttonClasses('primary', 'sm')}>
+        <WhatsAppLink context="branch" branch={branch.id} href={whatsappLink(branch.whatsapp, message)} className={buttonClasses('primary', 'sm')}>
           <MessageCircle className="h-4 w-4" aria-hidden /> WhatsApp
-        </a>
+        </WhatsAppLink>
         <a href={`tel:${branch.phone}`} className={buttonClasses('secondary', 'sm')} aria-label={`Call ${branch.name} on ${formatPhone(branch.phone)}`}>
           <Phone className="h-4 w-4" aria-hidden /> Call
         </a>

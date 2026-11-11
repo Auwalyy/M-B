@@ -19,6 +19,10 @@ export const updateSettingsSchema = z
       maxQuantityPerItem: z.number().int().min(1).max(1000),
     }).partial(),
     guestCheckoutEnabled: z.boolean(),
+    /** Online orders the branch never confirms are cancelled after this many hours (releasing the stock). */
+    pendingOrderExpiryHours: z.number().int().min(1).max(24 * 14),
+    /** Shown to customers who choose bank transfer. */
+    bankTransfer: z.object({ bankName: text(80), accountName: text(120), accountNumber: z.string().trim().regex(/^\d{10}$/,'Use the 10-digit NUBAN account number') }).nullable(),
     pricesIncludeVat: z.boolean(),
     showVatOnReceipts: z.boolean(),
     vatRatePercent: z.number().min(0).max(100),

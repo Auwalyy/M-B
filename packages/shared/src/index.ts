@@ -15,3 +15,5 @@ export * from './schemas/crm';
 export * from './dto-business';
 export * from './schemas/commerce';
 export * from './dto-commerce';
+export * from './schemas/transactions';
+export * from './dto-transactions';

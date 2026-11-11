@@ -69,7 +69,7 @@ export const RESERVATION_STATUSES = [
 export type ReservationStatus = (typeof RESERVATION_STATUSES)[number];
 
 export const PAYMENT_METHODS = [
-  'paystack', 'bank_transfer', 'cash', 'pay_on_pickup', 'pay_on_delivery',
+  'paystack', 'bank_transfer', 'cash', 'pos', 'pay_on_pickup', 'pay_on_delivery',
 ] as const;
 export type PaymentMethod = (typeof PAYMENT_METHODS)[number];
 
@@ -78,3 +78,22 @@ export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 export const FULFILMENT_METHODS = ['pickup', 'delivery'] as const;
 export type FulfilmentMethod = (typeof FULFILMENT_METHODS)[number];
+
+export const DELIVERY_STATUSES = ['pending', 'assigned', 'picked_up', 'in_transit', 'delivered', 'failed', 'returned'] as const;
+export type DeliveryStatus = (typeof DELIVERY_STATUSES)[number];
+
+export const ORDER_CHANNELS = ['online', 'in_store', 'whatsapp', 'phone'] as const;
+export type OrderChannel = (typeof ORDER_CHANNELS)[number];
+
+/** Order workflow. Cancellation is allowed from any open state (see ORDER_CANCELLABLE). */
+export const ORDER_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+  pending: ['confirmed'],
+  confirmed: ['processing'],
+  processing: ['ready_for_pickup', 'out_for_delivery'],
+  ready_for_pickup: ['completed'],
+  out_for_delivery: ['completed'],
+  completed: [],
+  cancelled: [],
+  refunded: [],
+};
+export const ORDER_CANCELLABLE: OrderStatus[] = ['pending', 'confirmed', 'processing', 'ready_for_pickup', 'out_for_delivery'];

@@ -124,6 +124,16 @@ ${button(d.link, 'Open the order')}`,
   };
 }
 
+/** Generic notification email: a title, a sentence or two, and an optional button. */
+export function simpleEmail(to: string, name: string, title: string, body: string, link: string | null): MailMessage {
+  return {
+    to,
+    subject: title,
+    html: layout(title, `<p>Hello ${escape(name)},</p><p>${escape(body)}</p>${link ? button(link, 'View details') : ''}`),
+    text: `Hello ${name},\n\n${body}${link ? `\n\n${link}` : ''}`,
+  };
+}
+
 export function staffWelcomeEmail(to: string, name: string, roleName: string, loginUrl: string): MailMessage {
   return {
     to,

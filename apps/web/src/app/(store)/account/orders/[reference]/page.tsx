@@ -7,6 +7,8 @@ import Link from 'next/link';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { OrderProgress, OrderStatusBadge } from '@/components/store/order-status';
+import { BankTransferDetails, PayByCardButton } from '@/components/store/pay';
+import { ButtonLink } from '@/components/ui/button';
 import { Button, buttonClasses } from '@/components/ui/button';
 import { Alert, Skeleton } from '@/components/ui/display';
 import { ConfirmDialog } from '@/components/ui/dialog';
@@ -75,6 +77,13 @@ function OrderDetail() {
           </dl>
         </section>
         <aside className="space-y-4">
+          {o.outstanding > 0 && !['cancelled', 'refunded'].includes(o.status) && (
+            <div className="space-y-3">
+              <PayByCardButton reference={o.reference} amount={o.outstanding} />
+              {o.paymentMethod === 'bank_transfer' && <BankTransferDetails amount={o.outstanding} reference={o.reference} />}
+            </div>
+          )}
+          {o.amountPaid > 0 && <ButtonLink href={`/account/orders/${o.reference}/receipt`} variant="secondary" className="w-full">View receipt</ButtonLink>}
           <div className="rounded-xl border border-line bg-surface p-4">
             <OrderProgress status={o.status} fulfilment={o.fulfilment.method} history={o.statusHistory.map((h) => ({ status: h.to, at: h.at }))} />
           </div>

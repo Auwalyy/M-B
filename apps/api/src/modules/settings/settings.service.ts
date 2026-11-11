@@ -35,6 +35,8 @@ export function toSettingsDto(s: ISetting): SettingsDto {
     ...toPublicSettings(s),
     lowStockDefault: s.lowStockDefault,
     adjustmentApprovalThreshold: s.adjustmentApprovalThreshold,
+    pendingOrderExpiryHours: s.pendingOrderExpiryHours,
+    bankTransfer: s.bankTransfer?.accountNumber ? { bankName: s.bankTransfer.bankName, accountName: s.bankTransfer.accountName, accountNumber: s.bankTransfer.accountNumber } : null,
     reservation: {
       pendingExpiryHours: s.reservation.pendingExpiryHours,
       confirmedHoldHours: s.reservation.confirmedHoldHours,

@@ -1,8 +1,10 @@
 'use client';
 
-import { ORDER_STATUSES, type OrderDto, formatNaira, formatPhone } from '@mb/shared';
+import { ORDER_STATUSES, type OrderDto, PERMISSIONS, formatNaira, formatPhone } from '@mb/shared';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { Receipt, Search, Store, Truck } from 'lucide-react';
+import { Plus, Receipt, Search, Store, Truck } from 'lucide-react';
+import { ButtonLink } from '@/components/ui/button';
+import { useCan } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { useDeferredValue, useState } from 'react';
 import { BranchSelect } from '@/components/admin/commerce';
@@ -15,6 +17,7 @@ import { timeAgo } from '@/lib/utils';
 
 export default function OrdersPage() {
   const router = useRouter();
+  const canCreate = useCan(PERMISSIONS.ORDERS_CREATE);
   const [status, setStatus] = useState('');
   const [branch, setBranch] = useState('');
   const [q, setQ] = useState('');
@@ -25,7 +28,7 @@ export default function OrdersPage() {
 
   return (
     <>
-      <PageHeader title="Orders" description="Online orders for your branches. Stock is held for every open order until it is completed or cancelled." />
+      <PageHeader title="Orders" description="Online orders for your branches. Stock is held for every open order until it is completed or cancelled." actions={canCreate && <ButtonLink href="/admin/orders/new"><Plus className="h-4 w-4" /> New order</ButtonLink>} />
       <Card>
         <div className="flex flex-wrap gap-3 border-b border-line p-4">
           <div className="relative min-w-56 flex-1">
@@ -50,7 +53,8 @@ export default function OrdersPage() {
           onPageChange={setPage}
           empty={{ icon: Receipt, title: 'No orders yet', description: 'Orders placed on the website appear here.' }}
           columns={[
-            { header: 'Order', cell: (o) => <div><p className={o.status === 'pending' ? 'font-bold' : 'font-medium'}>{o.reference}</p><p className="text-xs text-ink-muted">{timeAgo(o.createdAt)}</p></div> },
+            { header: 'Order', cell: (o) => <div><p className={o.status === 'pending' ? 'font-bold' : 'font-medium'}>{o.reference}</p><p className="text-xs text-ink-muted">{timeAgo(o.createdAt)} · {o.channel.replace('_', ' ')}</p></div> },
+            { header: 'Balance', hideOnMobile: true, cell: (o) => (o.outstanding > 0 && !['cancelled', 'refunded'].includes(o.status) ? <span className="text-sm font-semibold text-warning-700">{formatNaira(o.outstanding)}</span> : <span className="text-sm text-ink-muted">Paid</span>) },
             { header: 'Customer', cell: (o) => <div className="text-sm">{o.customer.fullName}<p className="text-xs text-ink-muted">{formatPhone(o.customer.phone)}</p></div> },
             { header: 'Branch', hideOnMobile: true, cell: (o) => <Badge>{o.branch.code}</Badge> },
             { header: 'How', hideOnMobile: true, cell: (o) => (o.fulfilment.method === 'pickup' ? <span className="inline-flex items-center gap-1 text-sm"><Store className="h-4 w-4" /> Pickup</span> : <span className="inline-flex items-center gap-1 text-sm"><Truck className="h-4 w-4" /> Delivery</span>) },

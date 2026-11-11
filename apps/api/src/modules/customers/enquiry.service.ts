@@ -22,6 +22,7 @@ import { Branch } from '../branches/branch.model';
 import { type IImage, Product } from '../catalog/catalog.models';
 import { productRef } from '../catalog/catalog.service';
 import { User } from '../users/user.model';
+import { notifyBranchTeam } from '../notifications/notification.service';
 import { CustomerInteraction, Enquiry, type IEnquiry } from './crm.models';
 import { Customer } from './customer.model';
 import { markServed } from './customer.service';
@@ -128,6 +129,7 @@ async function create(input: NewEnquiry, actor: AuthContext | null, meta: Reques
     for (const a of admins) {
       await queueEmail(newEnquiryEmail(a.email!, a.fullName, { reference: e!.reference, branch: branch.name, channel: CHANNEL_LABEL[input.channel], name: input.name, subject: input.subject, link: `${env.WEB_URL}/admin/enquiries/${e!._id}` }));
     }
+    await notifyBranchTeam(branch._id, P.ENQUIRIES_MANAGE, { type: 'enquiry.new', title: `New enquiry ${e!.reference}`, body: `${input.name}: ${input.subject}`, link: `/admin/enquiries/${e!._id}` });
     await audit({ action: 'enquiry.created', actor, branch: branch._id, entity: { kind: 'Enquiry', id: e!._id, label: e!.reference }, meta: { channel: input.channel } }, meta);
     return e!._id;
   });

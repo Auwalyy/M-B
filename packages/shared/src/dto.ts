@@ -143,6 +143,8 @@ export interface PublicSettingsDto {
 export interface SettingsDto extends PublicSettingsDto {
   lowStockDefault: number;
   adjustmentApprovalThreshold: number;
+  pendingOrderExpiryHours: number;
+  bankTransfer: { bankName: string; accountName: string; accountNumber: string } | null;
   reservation: { pendingExpiryHours: number; confirmedHoldHours: number; maxQuantityPerItem: number };
   showVatOnReceipts: boolean;
   vatRatePercent: number;

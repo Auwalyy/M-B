@@ -3,6 +3,8 @@ import type { BranchRef } from './dto';
 import type { ImageDto, StockLevel } from './dto-business';
 import type { FulfilmentMethod, OrderStatus, PaymentMethod } from './enums';
 import type { PromotionType } from './schemas/commerce';
+import type { DeliveryStatus } from './enums';
+import type { OrderPaymentSummary } from './dto-transactions';
 
 export interface PromotionDto {
   id: string;
@@ -109,6 +111,13 @@ export interface OrderDto {
   deliveryFee: number;
   total: number;
   amountPaid: number;
+  /** total minus net payments received. */
+  outstanding: number;
+  payments: OrderPaymentSummary[];
+  delivery: { id: string; status: DeliveryStatus; assignedTo: { name: string; phone: string } | null } | null;
+  /** Next workflow steps the caller may take (staff views). */
+  allowedTransitions: OrderStatus[];
+  createdBy: string | null;
   promotion: { name: string; code: string | null } | null;
   fulfilment: {
     method: FulfilmentMethod;

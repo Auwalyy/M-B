@@ -22,11 +22,13 @@ import { ApiError, api, errorMessage } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { CART_KEY, useCart } from '@/lib/cart';
 import { cn } from '@/lib/utils';
+import { startCardPayment, usePaymentConfig } from '@/components/store/pay';
 
 const PAYMENT: Record<CheckoutPaymentMethod, { label: string; help: string }> = {
   pay_on_pickup: { label: 'Pay at the branch', help: 'Cash, card or transfer when you collect.' },
   pay_on_delivery: { label: 'Pay on delivery', help: 'Pay the rider by card, transfer or cash.' },
-  bank_transfer: { label: 'Bank transfer', help: 'The branch will send account details to confirm your order.' },
+  bank_transfer: { label: 'Bank transfer', help: 'We show the account details after you order. The branch confirms once the money arrives.' },
+  paystack: { label: 'Pay now by card', help: 'Secure card, bank or USSD payment with Paystack.' },
 };
 
 export default function CheckoutPage() {
@@ -46,6 +48,7 @@ export default function CheckoutPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
+  const payConfig = usePaymentConfig();
 
   useEffect(() => {
     if (user) setContact((c) => ({ fullName: c.fullName || user.fullName, phone: c.phone || (user.phone ? formatPhone(user.phone) : ''), email: c.email || (user.email ?? '') }));
@@ -101,6 +104,10 @@ export default function CheckoutPage() {
       const order = await api.post<OrderDto>('/checkout', body);
       qc.setQueryData(CART_KEY, { ...cart, lines: [], itemCount: 0, subtotal: 0 });
       void qc.invalidateQueries({ queryKey: CART_KEY });
+      if (payment === 'paystack') {
+        await startCardPayment(order.reference, contact.phone).catch(() => router.replace(user ? `/account/orders/${order.reference}?placed=1` : `/track?reference=${order.reference}&phone=${encodeURIComponent(contact.phone)}&placed=1`));
+        return;
+      }
       router.replace(user ? `/account/orders/${order.reference}?placed=1` : `/track?reference=${order.reference}&phone=${encodeURIComponent(contact.phone)}&placed=1`);
     } catch (err) {
       setFormError(err instanceof ApiError && err.code === 'CHECKOUT_PROBLEMS' ? `${err.message} Please review your cart.` : errorMessage(err));
@@ -177,14 +184,13 @@ export default function CheckoutPage() {
           <section className="rounded-xl border border-line bg-surface p-5" aria-labelledby="h-pay">
             <h2 id="h-pay" className="font-semibold">Payment</h2>
             <div className="mt-4 space-y-2">
-              {(fulfilment === 'pickup' ? (['pay_on_pickup', 'bank_transfer'] as const) : (['pay_on_delivery', 'bank_transfer'] as const)).map((m) => (
+              {[...(payConfig.data?.paystackEnabled ? (['paystack'] as const) : []), ...(fulfilment === 'pickup' ? (['pay_on_pickup', 'bank_transfer'] as const) : (['pay_on_delivery', 'bank_transfer'] as const))].filter((m) => m !== 'bank_transfer' || payConfig.data?.bankTransfer).map((m) => (
                 <label key={m} className={cn('flex cursor-pointer gap-3 rounded-lg border p-3', payment === m ? 'border-brand-600 bg-brand-50/50' : 'border-line')}>
                   <input type="radio" name="payment" className="mt-1 accent-brand-700" checked={payment === m} onChange={() => setPayment(m)} />
                   <span><span className="block text-sm font-semibold">{PAYMENT[m].label}</span><span className="text-xs text-ink-muted">{PAYMENT[m].help}</span></span>
                 </label>
               ))}
               {errors.paymentMethod && <p role="alert" className="text-xs text-danger-700">{errors.paymentMethod}</p>}
-              <p className="text-xs text-ink-faint">Online card payment is coming soon.</p>
             </div>
             <Field label="Note for the branch (optional)" className="mt-4">{(p) => <Textarea {...p} rows={2} value={note} onChange={(e) => setNote(e.target.value)} />}</Field>
           </section>

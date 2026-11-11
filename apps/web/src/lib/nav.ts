@@ -1,7 +1,7 @@
 import { type AuthUserDto, PERMISSIONS, type Permission } from '@mb/shared';
 import {
   ArrowLeftRight, Boxes, Building2, ClipboardCheck, FolderTree, History, LayoutDashboard, type LucideIcon, MessageSquare,
-  Package, Percent, Receipt, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Tag, Truck, UserRound, Users,
+  Bike, CalendarClock, CreditCard, Package, Percent, Receipt, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Tag, Truck, UserRound, Users,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -26,6 +26,9 @@ export const ADMIN_NAV: NavSection[] = [
     title: 'Sales',
     items: [
       { label: 'Orders', href: '/admin/orders', icon: Receipt, anyOf: [P.ORDERS_READ] },
+      { label: 'Reservations', href: '/admin/reservations', icon: CalendarClock, anyOf: [P.RESERVATIONS_READ] },
+      { label: 'Payments', href: '/admin/payments', icon: CreditCard, anyOf: [P.PAYMENTS_READ] },
+      { label: 'Deliveries', href: '/admin/deliveries', icon: Bike, anyOf: [P.DELIVERY_READ] },
       { label: 'Promotions', href: '/admin/promotions', icon: Percent, anyOf: [P.PROMOTIONS_MANAGE] },
       { label: 'Delivery areas', href: '/admin/delivery-zones', icon: Truck, anyOf: [P.DELIVERY_ZONES_MANAGE] },
     ],

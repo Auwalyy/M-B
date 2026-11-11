@@ -83,7 +83,7 @@ export const cartBranchSchema = z.object({ branch: objectId });
 
 // ------------------------------------------------------------------ checkout
 
-export const CHECKOUT_PAYMENT_METHODS = ['pay_on_pickup', 'pay_on_delivery', 'bank_transfer'] as const;
+export const CHECKOUT_PAYMENT_METHODS = ['pay_on_pickup', 'pay_on_delivery', 'bank_transfer', 'paystack'] as const;
 export type CheckoutPaymentMethod = (typeof CHECKOUT_PAYMENT_METHODS)[number];
 
 export const deliveryAddressSchema = z.object({

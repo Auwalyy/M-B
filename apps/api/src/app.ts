@@ -28,6 +28,14 @@ import {
   registerOrderRoutes,
   registerPromotionRoutes,
 } from './modules/commerce/commerce.routes';
+import {
+  registerDeliveryRoutes,
+  registerNotificationRoutes,
+  registerPaymentRoutes,
+  registerReservationRoutes,
+  registerWebhookRoutes,
+  registerWhatsAppRoutes,
+} from './modules/transactions/transactions.routes';
 import { getStorage, type LocalStorage } from './core/storage/storage';
 
 export const API_PREFIX = '/api/v1';
@@ -52,6 +60,12 @@ const MODULES: { tag: string; path: string; register: (m: ModuleRouter) => void 
   { tag: 'Orders', path: '/orders', register: registerOrderRoutes },
   { tag: 'Promotions', path: '/promotions', register: registerPromotionRoutes },
   { tag: 'Delivery zones', path: '/delivery-zones', register: registerDeliveryZoneRoutes },
+  { tag: 'Reservations', path: '/reservations', register: registerReservationRoutes },
+  { tag: 'Payments', path: '/payments', register: registerPaymentRoutes },
+  { tag: 'Deliveries', path: '/deliveries', register: registerDeliveryRoutes },
+  { tag: 'Notifications', path: '/notifications', register: registerNotificationRoutes },
+  { tag: 'WhatsApp', path: '/whatsapp', register: registerWhatsAppRoutes },
+  { tag: 'Webhooks', path: '/webhooks', register: registerWebhookRoutes },
 ];
 
 export interface AppOptions {
@@ -87,7 +101,8 @@ export function createApp(options: AppOptions = {}): { app: Express; routes: Reg
       exposedHeaders: ['X-Request-Id', 'RateLimit', 'RateLimit-Policy'],
     }),
   );
-  app.use(express.json({ limit: '1mb' }));
+  // Keep the raw bytes: payment and WhatsApp webhooks are verified with an HMAC over the exact body.
+  app.use(express.json({ limit: '1mb', verify: (req, _res, buf) => { (req as express.Request & { rawBody?: Buffer }).rawBody = buf; } }));
   app.use(cookieParser());
 
   // Health checks for load balancers and uptime monitors.

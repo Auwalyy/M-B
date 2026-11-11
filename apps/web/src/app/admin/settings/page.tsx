@@ -21,6 +21,10 @@ interface FormValues {
   whatsapp: string;
   address: string;
   lowStockDefault: string;
+  pendingOrderExpiryHours: string;
+  bankName: string;
+  accountName: string;
+  accountNumber: string;
   adjustmentApprovalThreshold: string;
   pendingExpiryHours: string;
   confirmedHoldHours: string;
@@ -40,6 +44,10 @@ const toForm = (s: SettingsDto): FormValues => ({
   whatsapp: formatPhone(s.whatsapp),
   address: s.address ?? '',
   lowStockDefault: String(s.lowStockDefault),
+  pendingOrderExpiryHours: String(s.pendingOrderExpiryHours),
+  bankName: s.bankTransfer?.bankName ?? '',
+  accountName: s.bankTransfer?.accountName ?? '',
+  accountNumber: s.bankTransfer?.accountNumber ?? '',
   adjustmentApprovalThreshold: String(s.adjustmentApprovalThreshold),
   pendingExpiryHours: String(s.reservation.pendingExpiryHours),
   confirmedHoldHours: String(s.reservation.confirmedHoldHours),
@@ -59,6 +67,8 @@ const toPayload = (v: FormValues) => ({
   whatsapp: v.whatsapp,
   address: v.address,
   lowStockDefault: Number(v.lowStockDefault),
+  pendingOrderExpiryHours: Number(v.pendingOrderExpiryHours),
+  bankTransfer: v.accountNumber.trim() ? { bankName: v.bankName, accountName: v.accountName, accountNumber: v.accountNumber.trim() } : null,
   adjustmentApprovalThreshold: Number(v.adjustmentApprovalThreshold),
   reservation: {
     pendingExpiryHours: Number(v.pendingExpiryHours),
@@ -127,6 +137,22 @@ function SettingsForm({ settings, readOnly }: { settings: SettingsDto; readOnly:
           {text('whatsapp', 'Main WhatsApp number', { type: 'tel', hint: 'Used when a customer has not chosen a branch.' })}
           {text('supportEmail', 'Customer service email', { type: 'email' })}
           {text('address', 'Head office address')}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="Bank transfer details" description="Shown to customers who choose to pay by bank transfer. Leave empty to hide." />
+        <CardBody className="grid gap-4 sm:grid-cols-3">
+          {text('bankName', 'Bank')}
+          {text('accountName', 'Account name')}
+          {text('accountNumber', 'Account number (NUBAN)')}
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader title="Orders" />
+        <CardBody className="grid gap-4 sm:grid-cols-2">
+          {text('pendingOrderExpiryHours', 'Cancel unconfirmed online orders after (hours)', { type: 'number', hint: 'Releases stock held by orders the branch never confirms.' })}
         </CardBody>
       </Card>
 
