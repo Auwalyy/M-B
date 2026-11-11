@@ -1,7 +1,7 @@
 import { type AuthUserDto, PERMISSIONS, type Permission } from '@mb/shared';
 import {
   ArrowLeftRight, Boxes, Building2, ClipboardCheck, FolderTree, History, LayoutDashboard, type LucideIcon, MessageSquare,
-  Package, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Tag, UserRound, Users,
+  Package, Percent, Receipt, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Tag, Truck, UserRound, Users,
 } from 'lucide-react';
 
 export interface NavItem {
@@ -22,6 +22,14 @@ const P = PERMISSIONS;
 /** Admin navigation. Only modules that are built appear here. */
 export const ADMIN_NAV: NavSection[] = [
   { items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }] },
+  {
+    title: 'Sales',
+    items: [
+      { label: 'Orders', href: '/admin/orders', icon: Receipt, anyOf: [P.ORDERS_READ] },
+      { label: 'Promotions', href: '/admin/promotions', icon: Percent, anyOf: [P.PROMOTIONS_MANAGE] },
+      { label: 'Delivery areas', href: '/admin/delivery-zones', icon: Truck, anyOf: [P.DELIVERY_ZONES_MANAGE] },
+    ],
+  },
   {
     title: 'Catalogue',
     items: [

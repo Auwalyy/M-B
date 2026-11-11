@@ -21,6 +21,7 @@ import { syncBranchAdmins } from '../modules/users/user.service';
 import { User } from '../modules/users/user.model';
 import { Brand, Category, Product } from '../modules/catalog/catalog.models';
 import { applyStockChange } from '../modules/inventory/inventory.service';
+import { DeliveryZone, Promotion } from '../modules/commerce/commerce.models';
 import { slugify } from '../core/text/slug';
 
 const args = new Set(process.argv.slice(2));
@@ -232,7 +233,28 @@ async function seedCatalog(branchIds: Map<string, mongoose.Types.ObjectId>) {
       }
     }
   }
-  console.warn(`Seeded ${products.length} products in 6 categories with opening stock.`);
+  // Delivery areas per branch and one sample promo code, so checkout can be tried end to end.
+  const zones = [
+    { branch: 'KAN01', name: 'Kano city', areas: ['Nassarawa', 'Fagge', 'Gyadi-Gyadi', 'Tarauni'], fee: 2_500, freeAbove: 500_000, estimatedDays: 1 },
+    { branch: 'KAN01', name: 'Greater Kano', areas: ['Ungogo', 'Kumbotso', 'Dala'], fee: 4_500, estimatedDays: 2 },
+    { branch: 'KAN02', name: 'Sabon Gari and environs', areas: ['Sabon Gari', 'Bompai', 'Kofar Ruwa'], fee: 2_000, estimatedDays: 1 },
+    { branch: 'ABJ01', name: 'Central Abuja', areas: ['Wuse', 'Maitama', 'Garki', 'Asokoro'], fee: 3_000, freeAbove: 750_000, estimatedDays: 1 },
+    { branch: 'ABJ01', name: 'Abuja outskirts', areas: ['Lugbe', 'Kubwa', 'Gwarinpa'], fee: 5_500, estimatedDays: 2 },
+  ];
+  await DeliveryZone.insertMany(zones.map((z) => ({ ...z, branch: branchIds.get(z.branch)!, fee: naira(z.fee), freeAbove: z.freeAbove ? naira(z.freeAbove) : null })));
+  const owner = await User.findOne({ roleKey: 'SUPER_ADMIN' }).select('_id').lean();
+  await Promotion.create({
+    name: 'Welcome offer',
+    code: 'WELCOME10',
+    description: '10% off your order, up to ₦20,000',
+    type: 'percentage',
+    value: 10,
+    maxDiscount: naira(20_000),
+    startsAt: new Date(),
+    endsAt: new Date(Date.now() + 90 * 86_400_000),
+    createdBy: owner!._id,
+  });
+  console.warn(`Seeded ${products.length} products in 6 categories with opening stock, ${zones.length} delivery areas and promo code WELCOME10.`);
 }
 
 main()

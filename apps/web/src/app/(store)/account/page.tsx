@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect } from 'react';
 import { PasswordCard, ProfileCard, SessionsCard } from '@/components/account/account-panels';
+import { MyOrdersCard } from '@/components/account/my-orders';
 import { Alert, Skeleton } from '@/components/ui/display';
 import { useAuth } from '@/lib/auth';
 
@@ -36,6 +37,7 @@ function AccountContent() {
       )}
       <div className="mt-8 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-6">
+          <MyOrdersCard />
           <ProfileCard user={user} />
           <SessionsCard />
         </div>

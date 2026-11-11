@@ -176,9 +176,9 @@ describe('enquiries', () => {
   });
 
   it('rate-limits the public form', async () => {
-    const limited = makeApp();
+    const limited = makeApp({ rateLimits: { sensitivePerMinute: 5 } });
     const results = [];
-    for (let i = 0; i < 22; i++) results.push((await request(limited).post('/api/v1/enquiries').send({})).status);
+    for (let i = 0; i < 7; i++) results.push((await request(limited).post('/api/v1/enquiries').send({})).status);
     expect(results.filter((s) => s === 429).length).toBeGreaterThan(0);
   });
 });

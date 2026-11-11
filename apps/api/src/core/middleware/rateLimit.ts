@@ -5,6 +5,8 @@ import type { RateLimitName } from '../http/route';
 export interface RateLimitConfig {
   globalPerMinute: number;
   authPer15Min: number;
+  /** Public forms, checkout and order tracking. */
+  sensitivePerMinute: number;
 }
 
 function limitedResponse(message: string): RequestHandler {
@@ -38,7 +40,7 @@ export function createRateLimiters(cfg: RateLimitConfig) {
     // Other abuse-prone public endpoints (enquiry forms, checkout).
     sensitive: rateLimit({
       windowMs: 60_000,
-      limit: 20,
+      limit: cfg.sensitivePerMinute,
       standardHeaders: 'draft-8',
       legacyHeaders: false,
       handler: limitedResponse('Too many requests. Please wait a minute and try again.'),

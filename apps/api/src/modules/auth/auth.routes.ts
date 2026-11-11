@@ -7,9 +7,9 @@ import {
   resetPasswordSchema,
   updateProfileSchema,
 } from '@mb/shared';
-import type { Request, Response } from 'express';
+import type { Response } from 'express';
 import { env } from '../../config/env';
-import { forbidden } from '../../core/errors/AppError';
+import { assertTrustedOrigin } from '../../core/http/origin';
 import type { ModuleRouter } from '../../core/http/route';
 import {
   type AuthResult,
@@ -43,15 +43,6 @@ function setRefreshCookie(res: Response, token: string) {
 
 function clearRefreshCookie(res: Response) {
   res.clearCookie(REFRESH_COOKIE, { path: COOKIE_PATH, domain: env.COOKIE_DOMAIN, httpOnly: true, secure: env.cookieSecure, sameSite: 'lax' });
-}
-
-/**
- * Cookie-authenticated endpoints reject requests from other sites. This adds to SameSite=Lax
- * as protection against cross-site request forgery.
- */
-function assertTrustedOrigin(req: Request) {
-  const origin = req.get('origin');
-  if (origin && !env.corsOrigins.includes(origin)) throw forbidden('Request origin not allowed.', 'ORIGIN_NOT_ALLOWED');
 }
 
 function respondWithSession(res: Response, result: AuthResult) {

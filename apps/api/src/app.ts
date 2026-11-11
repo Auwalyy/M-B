@@ -21,6 +21,13 @@ import { registerUserRoutes } from './modules/users/user.routes';
 import { registerBrandRoutes, registerCategoryRoutes, registerProductRoutes } from './modules/catalog/catalog.routes';
 import { registerCustomerRoutes, registerEnquiryRoutes, registerSegmentRoutes } from './modules/customers/crm.routes';
 import { registerInventoryRoutes } from './modules/inventory/inventory.routes';
+import {
+  registerCartRoutes,
+  registerCheckoutRoutes,
+  registerDeliveryZoneRoutes,
+  registerOrderRoutes,
+  registerPromotionRoutes,
+} from './modules/commerce/commerce.routes';
 import { getStorage, type LocalStorage } from './core/storage/storage';
 
 export const API_PREFIX = '/api/v1';
@@ -40,6 +47,11 @@ const MODULES: { tag: string; path: string; register: (m: ModuleRouter) => void 
   { tag: 'Customers', path: '/customers', register: registerCustomerRoutes },
   { tag: 'Customer segments', path: '/customer-segments', register: registerSegmentRoutes },
   { tag: 'Enquiries', path: '/enquiries', register: registerEnquiryRoutes },
+  { tag: 'Cart', path: '/cart', register: registerCartRoutes },
+  { tag: 'Checkout', path: '/checkout', register: registerCheckoutRoutes },
+  { tag: 'Orders', path: '/orders', register: registerOrderRoutes },
+  { tag: 'Promotions', path: '/promotions', register: registerPromotionRoutes },
+  { tag: 'Delivery zones', path: '/delivery-zones', register: registerDeliveryZoneRoutes },
 ];
 
 export interface AppOptions {
@@ -56,6 +68,7 @@ export function createApp(options: AppOptions = {}): { app: Express; routes: Reg
   const limiters = createRateLimiters({
     globalPerMinute: options.rateLimits?.globalPerMinute ?? env.RATE_LIMIT_GLOBAL_PER_MINUTE,
     authPer15Min: options.rateLimits?.authPer15Min ?? env.RATE_LIMIT_AUTH_PER_15_MIN,
+    sensitivePerMinute: options.rateLimits?.sensitivePerMinute ?? env.RATE_LIMIT_SENSITIVE_PER_MINUTE,
   });
 
   app.use(requestId);

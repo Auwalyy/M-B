@@ -129,6 +129,64 @@ export async function applyStockChange(c: StockChange): Promise<IInventory & { _
   return after!;
 }
 
+export interface ReservationChange {
+  branch: Types.ObjectId;
+  product: Types.ObjectId;
+  variantId: Types.ObjectId | null;
+  sku: string;
+  /** Positive holds units for a customer; negative releases them. */
+  delta: number;
+  reference: { kind: string; id: Types.ObjectId; label?: string };
+  reason?: string;
+  performedBy: string | null;
+  lowStockDefault: number;
+}
+
+/**
+ * Holds (or releases) units for an order or reservation. A hold succeeds only when enough
+ * units are available and the item is offered at the branch, so two customers can never be
+ * promised the same unit.
+ */
+export async function applyReservation(c: ReservationChange): Promise<IInventory & { _id: Types.ObjectId }> {
+  const key = { product: c.product, variantId: c.variantId, branch: c.branch };
+  let after: (IInventory & { _id: Types.ObjectId }) | null;
+  if (c.delta > 0) {
+    after = await Inventory.findOneAndUpdate(
+      { ...key, isAvailable: true, $expr: { $gte: [{ $subtract: ['$quantity', '$reserved'] }, c.delta] } },
+      { $inc: { reserved: c.delta } },
+      { returnDocument: 'after' },
+    ).lean();
+    if (!after) {
+      throw new AppError(409, 'INSUFFICIENT_STOCK', `Not enough stock for ${c.sku} at this branch.`, { sku: c.sku, requested: c.delta });
+    }
+  } else {
+    after = await Inventory.findOneAndUpdate({ ...key, reserved: { $gte: -c.delta } }, { $inc: { reserved: c.delta } }, { returnDocument: 'after' }).lean();
+    if (!after) throw new AppError(409, 'RESERVATION_MISMATCH', `Reserved stock for ${c.sku} is lower than expected.`);
+  }
+  await InventoryMovement.create([
+    {
+      inventory: after._id,
+      product: c.product,
+      variantId: c.variantId,
+      sku: c.sku,
+      branch: c.branch,
+      type: c.delta > 0 ? 'reservation_hold' : 'reservation_release',
+      quantityDelta: 0,
+      reservedDelta: c.delta,
+      balanceAfter: after.quantity,
+      reference: c.reference,
+      reason: c.reason,
+      performedBy: c.performedBy ? new Types.ObjectId(c.performedBy) : null,
+    },
+  ]);
+  const threshold = after.reorderLevel ?? c.lowStockDefault;
+  const availableAfter = after.quantity - after.reserved;
+  if (c.delta > 0 && availableAfter + c.delta > threshold && availableAfter <= threshold) {
+    await enqueue('inventory.low_stock', { inventoryId: after._id.toString() });
+  }
+  return after;
+}
+
 registerOutboxHandler('inventory.low_stock', async (payload) => {
   const inv = await Inventory.findById(String(payload.inventoryId)).lean();
   if (!inv) return;

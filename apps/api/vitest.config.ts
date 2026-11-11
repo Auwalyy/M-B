@@ -15,6 +15,7 @@ export default defineConfig({
       LOG_LEVEL: 'silent',
       RATE_LIMIT_AUTH_PER_15_MIN: '10000',
       RATE_LIMIT_GLOBAL_PER_MINUTE: '100000',
+      RATE_LIMIT_SENSITIVE_PER_MINUTE: '100000',
     },
   },
 });

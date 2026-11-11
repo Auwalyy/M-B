@@ -84,6 +84,46 @@ ${button(d.link, 'Open the enquiry')}`,
   };
 }
 
+const naira = (kobo: number) => `₦${(kobo / 100).toLocaleString('en-NG', { maximumFractionDigits: 2 })}`;
+
+export function orderPlacedEmail(
+  to: string,
+  name: string,
+  d: { reference: string; branch: string; total: number; fulfilment: 'pickup' | 'delivery'; link: string },
+): MailMessage {
+  const next = d.fulfilment === 'pickup' ? `${d.branch} will let you know when it is ready for pickup.` : `${d.branch} will contact you to arrange delivery.`;
+  return {
+    to,
+    subject: `Order ${d.reference} received`,
+    html: layout(
+      'Thank you for your order',
+      `<p>Hello ${escape(name)},</p>
+<p>We have received your order <strong>${escape(d.reference)}</strong> for <strong>${naira(d.total)}</strong>. ${escape(next)}</p>
+${button(d.link, 'Track your order')}
+<p style="color:#66706b;font-size:13px">Keep your order number handy. You will need it with your phone number to track the order.</p>`,
+    ),
+    text: `Hello ${name},\n\nWe have received your order ${d.reference} for ${naira(d.total)}. ${next}\n\nTrack it: ${d.link}`,
+  };
+}
+
+export function newOrderStaffEmail(
+  to: string,
+  name: string,
+  d: { reference: string; branch: string; customer: string; total: number; fulfilment: 'pickup' | 'delivery'; link: string },
+): MailMessage {
+  return {
+    to,
+    subject: `New online order ${d.reference} (${naira(d.total)})`,
+    html: layout(
+      'New online order',
+      `<p>Hello ${escape(name)},</p>
+<p><strong>${escape(d.customer)}</strong> placed order <strong>${escape(d.reference)}</strong> at ${escape(d.branch)} for ${naira(d.total)} (${d.fulfilment === 'pickup' ? 'branch pickup' : 'home delivery'}). The items are held in stock for this order.</p>
+${button(d.link, 'Open the order')}`,
+    ),
+    text: `Hello ${name},\n\n${d.customer} placed order ${d.reference} at ${d.branch} for ${naira(d.total)} (${d.fulfilment}).\n\n${d.link}`,
+  };
+}
+
 export function staffWelcomeEmail(to: string, name: string, roleName: string, loginUrl: string): MailMessage {
   return {
     to,

@@ -46,6 +46,13 @@ Every response carries an `X-Request-Id` header. Quote it when reporting a probl
 
 Each request reloads the session and the user. Sign-out, deactivation, role edits and branch changes therefore apply on the very next request.
 
+## Cart and checkout
+
+- Guests are identified by the `mb_cart` cookie (httpOnly, path `/api/v1`, 30 days); signed-in users by their account. Call `POST /cart/merge` after sign-in to move a guest cart into the account.
+- `POST /checkout/quote` prices the cart on the server and lists anything blocking the order in `problems`. `POST /checkout` recalculates everything (client-sent prices are ignored) and needs a unique `idempotencyKey`. Retrying with the same key returns the same order.
+- Placing an order holds the units in stock (`reserved`); cancelling releases them.
+- `GET /orders/track?reference=&phone=` returns a minimal public tracking view; the phone must match the one used at checkout.
+
 ## Authorisation model
 
 - Each role has a set of **permissions** (`branches:read`, `users:create`, …), defined in [packages/shared/src/permissions.ts](../packages/shared/src/permissions.ts).

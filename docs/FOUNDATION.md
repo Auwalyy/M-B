@@ -1,6 +1,6 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–2 complete
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–3 complete
 
 Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Media storage (`core/storage`) is in place, with Cloudinary in production and local disk in development. Background jobs (`core/jobs`) arrive with reservations in Phase 4. The transactional outbox and its worker exist already.
 
@@ -617,7 +617,9 @@ Implementation notes: stock adjustments use the statuses `pending → applied | 
 Categories (tree), brands, products with variants and image upload, per-branch inventory, stock in/out, the movement ledger, low-stock detection, adjustments with approval, the inter-branch transfer workflow, customers/CRM (lookup and de-duplication by phone, interactions, segments), enquiries. Admin screens for each.
 - **Tests:** concurrent stock operations (parallel decrements never go negative), transfer state machine, adjustment approval rules, CRM scoping.
 
-### Phase 3: E-commerce
+### Phase 3: E-commerce ✅
+Implementation notes: checkout creates real orders (status `pending`) and holds stock with `reservation_hold` movements, so the Order model and its cancel path (which releases stock) were built here. Confirm, prepare, hand-over and payments remain Phase 4. Online card payment (Paystack) is Phase 4; checkout offers pay at branch, pay on delivery and bank transfer. One order comes from one branch (the cart has a single branch). Only one promotion applies per order: the entered code, or the best automatic promotion.
+
 Storefront (home, shop, categories, product details with branch availability and alternative-branch suggestions, search, branches, about, contact), SEO (metadata, sitemap, structured data, ISR), customer account, guest and user cart with merge, branch selection, checkout quote (promotions, delivery zones), checkout (pickup and delivery, guest checkout).
 - **Tests:** search and filter, price integrity (client-supplied prices ignored), availability exposure (no exact counts shown publicly), Playwright for browse → cart → checkout.
 

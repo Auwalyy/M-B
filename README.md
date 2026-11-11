@@ -43,7 +43,7 @@ All seed accounts use the password `Password123` (or `SEED_PASSWORD`).
 | Sales Staff | sales.kan01@mb.test · sales.kan02@mb.test · sales.abj01@mb.test | KAN01 · KAN02 · ABJ01 |
 | Customer | customer@mb.test | (prefers KAN01) |
 
-The seed also creates a small catalogue (TVs, fridges, fans and a kaftan with sizes) with opening stock at each branch. Seed branch addresses and phone numbers are placeholders. Replace them in **Admin → Branches** before going live.
+The seed also creates a small catalogue (TVs, fridges, fans and a kaftan with sizes) with opening stock at each branch, delivery areas for every branch, and the promo code `WELCOME10`. Seed branch addresses and phone numbers are placeholders. Replace them in **Admin → Branches** before going live.
 
 ## Product images (Cloudinary)
 
@@ -67,7 +67,7 @@ Built in phases (see the roadmap in [docs/FOUNDATION.md](docs/FOUNDATION.md#5-de
 
 - [x] **Phase 1: Foundation.** Authentication, roles and permissions, branch isolation, branches, staff, company settings, activity log, admin shell, public branch pages
 - [x] **Phase 2: Business management.** Catalogue (categories, brands, products with variants and Cloudinary images), per-branch inventory with a movement ledger, low-stock alerts, count corrections with approval, inter-branch transfers, customers (central identity, communication history, segments), enquiries and the public contact form
-- [ ] Phase 3: Storefront catalogue, search, cart, checkout
+- [x] **Phase 3: E-commerce.** Storefront (home, shop with filters, category and product pages with branch availability, search, about, SEO and sitemap), server-side cart with guest checkout, promotions, delivery areas, checkout that holds stock, order tracking, customer order history and cancellation, staff order list
 - [ ] Phase 4: Reservations, orders, payments (Paystack), delivery, WhatsApp
 - [ ] Phase 5: Dashboards and reports
 - [ ] Phase 6: Hardening, end-to-end tests, production deployment

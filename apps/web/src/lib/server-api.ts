@@ -16,3 +16,14 @@ export async function serverGet<T>(path: string, revalidate = 300): Promise<T | 
     return null;
   }
 }
+
+/** Paginated read: returns items and paging meta. */
+export async function serverPage<T>(path: string, revalidate = 60): Promise<{ data: T[]; meta: { page: number; limit: number; total: number; pages: number } } | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/v1${path}`, { next: { revalidate }, headers: { Accept: 'application/json' } });
+    if (!res.ok) return null;
+    return (await res.json()) as { data: T[]; meta: { page: number; limit: number; total: number; pages: number } };
+  } catch {
+    return null;
+  }
+}

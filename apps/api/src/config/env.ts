@@ -31,6 +31,7 @@ const schema = z
     LOGIN_LOCK_MINUTES: z.coerce.number().int().min(1).default(15),
     RATE_LIMIT_GLOBAL_PER_MINUTE: z.coerce.number().int().min(1).default(300),
     RATE_LIMIT_AUTH_PER_15_MIN: z.coerce.number().int().min(1).default(20),
+    RATE_LIMIT_SENSITIVE_PER_MINUTE: z.coerce.number().int().min(1).default(20),
 
     SMTP_URL: z.string().optional(),
     MAIL_FROM: z.string().default('Mudassir & Brothers <no-reply@mudassirbrothers.com>'),

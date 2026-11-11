@@ -13,3 +13,5 @@ export * from './schemas/catalog';
 export * from './schemas/inventory';
 export * from './schemas/crm';
 export * from './dto-business';
+export * from './schemas/commerce';
+export * from './dto-commerce';
