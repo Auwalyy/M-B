@@ -136,6 +136,9 @@ const paymentSchema = new Schema<IPayment>(
 paymentSchema.index({ order: 1 });
 paymentSchema.index({ branch: 1, verifiedAt: -1 });
 paymentSchema.index({ status: 1, createdAt: -1 });
+// Reports: collected revenue by verification date, refunds by refund date.
+paymentSchema.index({ status: 1, verifiedAt: -1 });
+paymentSchema.index({ 'refunds.at': 1 });
 paymentSchema.index({ receiptNumber: 1 }, { unique: true, partialFilterExpression: { receiptNumber: { $type: 'string' } } });
 
 export const Payment = model<IPayment>('Payment', paymentSchema);

@@ -21,6 +21,7 @@ import { registerUserRoutes } from './modules/users/user.routes';
 import { registerBrandRoutes, registerCategoryRoutes, registerProductRoutes } from './modules/catalog/catalog.routes';
 import { registerCustomerRoutes, registerEnquiryRoutes, registerSegmentRoutes } from './modules/customers/crm.routes';
 import { registerInventoryRoutes } from './modules/inventory/inventory.routes';
+import { registerAnalyticsRoutes, registerReportRoutes } from './modules/analytics/analytics.routes';
 import {
   registerCartRoutes,
   registerCheckoutRoutes,
@@ -66,6 +67,8 @@ const MODULES: { tag: string; path: string; register: (m: ModuleRouter) => void 
   { tag: 'Notifications', path: '/notifications', register: registerNotificationRoutes },
   { tag: 'WhatsApp', path: '/whatsapp', register: registerWhatsAppRoutes },
   { tag: 'Webhooks', path: '/webhooks', register: registerWebhookRoutes },
+  { tag: 'Analytics', path: '/analytics', register: registerAnalyticsRoutes },
+  { tag: 'Reports', path: '/reports', register: registerReportRoutes },
 ];
 
 export interface AppOptions {

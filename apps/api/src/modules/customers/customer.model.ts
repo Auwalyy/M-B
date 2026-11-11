@@ -72,7 +72,8 @@ const customerSchema = new Schema<ICustomer>(
 );
 
 customerSchema.index({ email: 1 }, { unique: true, partialFilterExpression: { email: { $type: 'string' } } });
-customerSchema.index({ branchesServed: 1 });
+customerSchema.index({ branchesServed: 1, createdAt: 1 });
+customerSchema.index({ createdAt: 1 });
 customerSchema.index({ preferredBranch: 1 });
 customerSchema.index({ 'stats.totalSpent': -1 });
 customerSchema.index({ fullName: 'text', phone: 'text', email: 'text' });

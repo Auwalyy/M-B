@@ -1,6 +1,6 @@
 import { type AuthUserDto, PERMISSIONS, type Permission } from '@mb/shared';
 import {
-  ArrowLeftRight, Boxes, Building2, ClipboardCheck, FolderTree, History, LayoutDashboard, type LucideIcon, MessageSquare,
+  ArrowLeftRight, Boxes, Building2, ClipboardCheck, FileBarChart, FolderTree, History, LayoutDashboard, type LucideIcon, MessageSquare,
   Bike, CalendarClock, CreditCard, Package, Percent, Receipt, ScrollText, Settings, ShieldCheck, SlidersHorizontal, Tag, Truck, UserRound, Users,
 } from 'lucide-react';
 
@@ -21,7 +21,12 @@ const P = PERMISSIONS;
 
 /** Admin navigation. Only modules that are built appear here. */
 export const ADMIN_NAV: NavSection[] = [
-  { items: [{ label: 'Dashboard', href: '/admin', icon: LayoutDashboard }] },
+  {
+    items: [
+      { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+      { label: 'Reports', href: '/admin/reports', icon: FileBarChart, anyOf: [P.REPORTS_READ] },
+    ],
+  },
   {
     title: 'Sales',
     items: [

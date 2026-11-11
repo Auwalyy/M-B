@@ -16,7 +16,7 @@
     "dev:api": "npm run dev -w @mb/api",
     "dev:web": "npm run dev -w @mb/web",
     "db:dev": "npm run db:dev -w @mb/api",
-    "seed": "npm run seed -w @mb/api",
+    "seed": "npm run seed -w @mb/api --",
     "build": "npm run build -w @mb/api && npm run build -w @mb/web",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "eslint .",

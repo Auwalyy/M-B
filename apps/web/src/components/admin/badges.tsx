@@ -24,6 +24,7 @@ export function BranchStatusBadge({ status }: { status: BranchStatus }) {
 
 const ACTIONS: Record<string, string> = {
   'auth.login': 'Signed in',
+  'report.exported': 'Downloaded a report',
   'auth.login_failed': 'Failed sign-in',
   'auth.login_blocked': 'Blocked sign-in (inactive account)',
   'auth.account_locked': 'Account locked after failed attempts',

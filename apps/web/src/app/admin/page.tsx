@@ -4,6 +4,8 @@ import { PERMISSIONS } from '@mb/shared';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Building2, History, type LucideIcon, Plus, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
+import { Suspense } from 'react';
+import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { actionLabel, actionTone } from '@/components/admin/badges';
 import { ButtonLink } from '@/components/ui/button';
 import { Alert, Badge, Card, CardBody, CardHeader, PageHeader, Skeleton } from '@/components/ui/display';
@@ -48,18 +50,33 @@ export default function DashboardPage() {
   const activeBranches = branchList.filter((b) => b.status === 'active').length;
   const awaitingFirstLogin = activeStaff.data?.data.filter((u) => u.mustChangePassword).length ?? 0;
 
+  const header = (
+    <PageHeader
+      title={`${greeting()}, ${user.fullName.split(' ')[0]}`}
+      description={user.scope === 'company' ? 'Overview of every Mudassir & Brothers branch.' : `Overview of ${user.branches.map((b) => b.name).join(', ')}.`}
+      actions={
+        <>
+          {can(PERMISSIONS.USERS_CREATE) && <ButtonLink href="/admin/staff/new" variant="secondary"><Plus className="h-4 w-4" /> Add staff</ButtonLink>}
+          {can(PERMISSIONS.BRANCHES_CREATE) && <ButtonLink href="/admin/branches/new"><Plus className="h-4 w-4" /> Add branch</ButtonLink>}
+        </>
+      }
+    />
+  );
+
+  if (can(PERMISSIONS.REPORTS_READ)) {
+    return (
+      <>
+        {header}
+        <Suspense>
+          <AnalyticsDashboard />
+        </Suspense>
+      </>
+    );
+  }
+
   return (
     <>
-      <PageHeader
-        title={`${greeting()}, ${user.fullName.split(' ')[0]}`}
-        description={user.scope === 'company' ? 'Overview of every Mudassir & Brothers branch.' : `Overview of ${user.branches.map((b) => b.name).join(', ')}.`}
-        actions={
-          <>
-            {can(PERMISSIONS.USERS_CREATE) && <ButtonLink href="/admin/staff/new" variant="secondary"><Plus className="h-4 w-4" /> Add staff</ButtonLink>}
-            {can(PERMISSIONS.BRANCHES_CREATE) && <ButtonLink href="/admin/branches/new"><Plus className="h-4 w-4" /> Add branch</ButtonLink>}
-          </>
-        }
-      />
+      {header}
 
       {branches.error && <Alert className="mb-6">{errorMessage(branches.error)}</Alert>}
 

@@ -166,6 +166,35 @@ export const api = {
   },
 };
 
+/**
+ * Downloads a file (such as a CSV report) with the signed-in user's token and hands it to the browser.
+ * A plain link cannot be used because the token is not a cookie.
+ */
+export async function downloadFile(path: string, query?: Query, fallbackName = 'download', canRetry = true): Promise<void> {
+  const headers: Record<string, string> = {};
+  if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
+  let res: Response;
+  try {
+    res = await fetch(buildUrl(path, query), { headers, credentials: 'same-origin' });
+  } catch {
+    throw new ApiError(0, 'NETWORK_ERROR', 'Cannot reach the server. Check your internet connection and try again.');
+  }
+  if (!res.ok) {
+    const e = ((await res.json().catch(() => null)) as { error?: { code: string; message: string } } | null)?.error;
+    if (res.status === 401 && canRetry && e && RETRYABLE_AUTH_CODES.has(e.code) && (await refreshSession())) return downloadFile(path, query, fallbackName, false);
+    throw new ApiError(res.status, e?.code ?? 'HTTP_ERROR', e?.message ?? `Download failed (${res.status})`);
+  }
+  const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? fallbackName;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
+
 /** Human-friendly message for any error thrown by the client. */
 export function errorMessage(err: unknown): string {
   if (err instanceof ApiError) return err.message;

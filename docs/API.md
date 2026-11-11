@@ -53,6 +53,13 @@ Each request reloads the session and the user. Sign-out, deactivation, role edit
 - Placing an order holds the units in stock (`reserved`); cancelling releases them.
 - `GET /orders/track?reference=&phone=` returns a minimal public tracking view; the phone must match the one used at checkout.
 
+## Analytics and reports
+
+- Every `/analytics` and `/reports` route needs `reports:read` and covers only the caller's branches. `branch=<id>` narrows to one branch; a branch outside the caller's scope answers **404**.
+- Dated routes take `from` and `to` as inclusive `YYYY-MM-DD` days in Africa/Lagos time (default: the last 30 days; at most 731 days). Overview figures include `previous`, the same-length period just before.
+- Figures follow the revenue definitions in FOUNDATION §1.5. Collected revenue, refunds, outstanding balances and `/reports/payments` also need `reports:financial` for every branch shown; stock value at cost needs `inventory:read-cost`. Without them those fields are `null`, and `access` in the response says which applies.
+- Reports return `{ range, summary, rows, page, limit, total, pages }`. The summary covers the whole range, not just the page. Add `format=csv` to download every row (up to 50,000) as UTF-8 CSV with amounts in naira. Each download is written to the activity log as `report.exported`. Text that a spreadsheet could run as a formula is prefixed with `'`.
+
 ## Authorisation model
 
 - Each role has a set of **permissions** (`branches:read`, `users:create`, …), defined in [packages/shared/src/permissions.ts](../packages/shared/src/permissions.ts).

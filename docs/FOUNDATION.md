@@ -1,6 +1,6 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–4 complete
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–5 complete
 
 Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Media storage (`core/storage`) is in place, with Cloudinary in production and local disk in development. Background jobs (`core/jobs`) arrive with reservations in Phase 4. The transactional outbox and its worker exist already.
 
@@ -629,7 +629,9 @@ Implementation notes: completing an order requires it to be fully paid; stock mo
 Reservations (hold, confirm, reject, expiry job, convert), the order state machine and status history, staff-created orders, Paystack (initialize, verify, webhook, refunds), manual payments, receipts, outstanding balances, deliveries and assignment, the WhatsApp link builder, enquiry logging, the optional Cloud API channel, the notification worker (in-app and email).
 - **Tests:** oversell race (N parallel checkouts for the last unit), webhook signature and idempotency, forged frontend "success" rejected, reservation expiry releasing stock, illegal status transitions rejected.
 
-### Phase 5: Analytics
+### Phase 5: Analytics ✅
+Implementation notes: one analytics module (`modules/analytics`) resolves the caller's branch scope once and every aggregation filters by it. Outstanding balance counts accepted orders not yet completed: completion needs full payment, so a later partial refund is a return, not a debt. Units sold and best sellers use completed orders; gross sales uses confirmation date. Inventory value uses the product cost price (variants share it); lines without a cost price are counted and reported. New indexes: orders by `confirmedAt` and `completedAt`, payments by `status, verifiedAt` and `refunds.at`, customers by `createdAt`. CSV exports stream from a cursor, cap at 50,000 rows, guard against spreadsheet formulas and are audited. The dashboard and charts are hand-built SVG (no chart library) with a hover or keyboard readout and a table view.
+
 Super admin dashboard, branch dashboard, sales, inventory, customer and payment reports, CSV export, charts. Aggregations are backed by indexes and use the defined revenue metrics.
 - **Tests:** report figures reconciled against seeded fixtures; branch admins never see other branches' figures.
 
