@@ -1,6 +1,6 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–3 complete
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–4 complete
 
 Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Media storage (`core/storage`) is in place, with Cloudinary in production and local disk in development. Background jobs (`core/jobs`) arrive with reservations in Phase 4. The transactional outbox and its worker exist already.
 
@@ -623,7 +623,9 @@ Implementation notes: checkout creates real orders (status `pending`) and holds 
 Storefront (home, shop, categories, product details with branch availability and alternative-branch suggestions, search, branches, about, contact), SEO (metadata, sitemap, structured data, ISR), customer account, guest and user cart with merge, branch selection, checkout quote (promotions, delivery zones), checkout (pickup and delivery, guest checkout).
 - **Tests:** search and filter, price integrity (client-supplied prices ignored), availability exposure (no exact counts shown publicly), Playwright for browse → cart → checkout.
 
-### Phase 4: Transactions
+### Phase 4: Transactions ✅
+Implementation notes: completing an order requires it to be fully paid; stock moves from held to sold when a pickup completes or a delivery is dispatched. A returned delivery cancels the order and restocks it. Online orders the branch never confirms are cancelled after a configurable time (default 48 h). Paid-in-full online orders confirm themselves. Bank transfers recorded by sales staff wait for a branch admin. Card refunds are pending until Paystack confirms them by webhook. The background jobs use a MongoDB lease, so several API instances are safe.
+
 Reservations (hold, confirm, reject, expiry job, convert), the order state machine and status history, staff-created orders, Paystack (initialize, verify, webhook, refunds), manual payments, receipts, outstanding balances, deliveries and assignment, the WhatsApp link builder, enquiry logging, the optional Cloud API channel, the notification worker (in-app and email).
 - **Tests:** oversell race (N parallel checkouts for the last unit), webhook signature and idempotency, forged frontend "success" rejected, reservation expiry releasing stock, illegal status transitions rejected.
 
