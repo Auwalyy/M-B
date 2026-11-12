@@ -85,8 +85,10 @@ export function registerAuthRoutes(m: ModuleRouter): void {
     summary: 'Exchange the refresh cookie for a new access token (rotates the refresh token)',
     auth: 'none',
     status: 200,
+    description: 'Answers 204 with no body when the browser has no refresh cookie (a signed-out visitor), so pages can check for a session without logging errors.',
     handler: async ({ req, res, meta }) => {
       assertTrustedOrigin(req);
+      if (!req.cookies?.[REFRESH_COOKIE]) return undefined;
       try {
         return respondWithSession(res, await refresh(req.cookies?.[REFRESH_COOKIE], meta));
       } catch (err) {

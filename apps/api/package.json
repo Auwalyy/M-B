@@ -13,6 +13,8 @@
     "test:watch": "vitest",
     "seed": "tsx src/scripts/seed.ts",
     "create-super-admin": "tsx src/scripts/create-super-admin.ts",
+    "bootstrap": "tsx src/scripts/bootstrap.ts",
+    "bootstrap:prod": "node --enable-source-maps dist/scripts/bootstrap.js",
     "db:dev": "tsx src/scripts/dev-db.ts"
   },
   "dependencies": {

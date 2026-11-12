@@ -71,7 +71,18 @@ export function DataTable<T>({ columns, rows, rowKey, loading, error, onRetry, o
                   <tr
                     key={rowKey(row)}
                     onClick={onRowClick ? () => onRowClick(row) : undefined}
-                    className={cn(onRowClick && 'cursor-pointer hover:bg-brand-50/50')}
+                    // Clickable rows are reachable and openable from the keyboard too.
+                    tabIndex={onRowClick ? 0 : undefined}
+                    onKeyDown={
+                      onRowClick
+                        ? (e) => {
+                            if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
+                            e.preventDefault();
+                            onRowClick(row);
+                          }
+                        : undefined
+                    }
+                    className={cn(onRowClick && 'cursor-pointer outline-none hover:bg-brand-50/50 focus-visible:bg-brand-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-500')}
                   >
                     {columns.map((c) => (
                       <td key={c.header} className={cn('px-4 py-3 align-middle', hidden(c), c.className)}>

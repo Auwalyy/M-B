@@ -64,8 +64,9 @@ export default function CartPage() {
               const [product, variant] = [l.product.id, l.variant?.id ?? null];
               return (
                 <li key={l.key} className="flex gap-4 p-4">
-                  <Link href={l.product.slug ? `/products/${l.product.slug}` : '#'} className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-subtle">
-                    {img ? <img src={img} alt="" className="h-full w-full object-contain" /> : <Package className="m-auto mt-6 h-8 w-8 text-ink-faint" aria-hidden />}
+                  {/* The product name beside it is the link for screen readers; this thumbnail is a mouse shortcut. */}
+                  <Link href={l.product.slug ? `/products/${l.product.slug}` : '#'} tabIndex={-1} aria-hidden className="h-20 w-20 shrink-0 overflow-hidden rounded-lg border border-line bg-subtle">
+                    {img ? <img src={img} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain" /> : <Package className="m-auto mt-6 h-8 w-8 text-ink-faint" aria-hidden />}
                   </Link>
                   <div className="min-w-0 flex-1">
                     <Link href={`/products/${l.product.slug}`} className="font-semibold hover:text-brand-700">{l.product.name}</Link>

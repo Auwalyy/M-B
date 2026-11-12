@@ -1,6 +1,6 @@
 # Mudassir & Brothers — Platform Foundation
 
-Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · Phases 1–5 complete
+Status: **Approved 2026-11-10** (decisions D1–D9 accepted as proposed; D6 Cloudinary confirmed) · All six phases complete
 
 Implementation notes since approval: the API runs on port **4100** by default (4000 was taken on the development machine). Media storage (`core/storage`) is in place, with Cloudinary in production and local disk in development. Background jobs (`core/jobs`) arrive with reservations in Phase 4. The transactional outbox and its worker exist already.
 
@@ -635,7 +635,9 @@ Implementation notes: one analytics module (`modules/analytics`) resolves the ca
 Super admin dashboard, branch dashboard, sales, inventory, customer and payment reports, CSV export, charts. Aggregations are backed by indexes and use the defined revenue metrics.
 - **Tests:** report figures reconciled against seeded fixtures; branch admins never see other branches' figures.
 
-### Phase 6: Quality and deployment
+### Phase 6: Quality and deployment ✅
+Implementation notes: the security review is in [SECURITY.md](SECURITY.md) (OWASP API Top 10, each control linked to a test). Query plans of the busiest queries are guarded by `test/performance.test.ts` (it found and fixed four head-office queries that scanned whole collections). End-to-end tests (`apps/e2e`, Playwright + axe) run a throwaway copy of the whole system; they found and fixed colour contrast, accessible-name and keyboard problems (clickable table rows were mouse-only). Lighthouse mobile on a production build: 90–98 performance on the storefront, 100 accessibility, best practices and SEO. Releases run `bootstrap` (indexes, roles, settings); production builds no indexes on start.
+
 Security review (OWASP API Top 10 checklist, dependency audit, header checks), performance (indexes, `explain` on heavy queries, image optimisation, Lighthouse ≥ 90 mobile on storefront pages), full end-to-end suite, accessibility checks (axe), `DEPLOYMENT.md` (Atlas, API on Render/Railway/a VPS with PM2 or Docker, web on Vercel, environment variables, backups, Paystack and WhatsApp webhook setup), and a production seed or bootstrap.
 
 ---

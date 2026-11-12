@@ -116,6 +116,13 @@ describe('refresh tokens', () => {
     await makeUser({ role: 'SALES_STAFF', email: 'staff@test.local' });
   });
 
+  it('answers a signed-out visitor (no cookie) with 204, and a bad cookie with 401', async () => {
+    const none = await request(app).post('/api/v1/auth/refresh');
+    expect(none.status).toBe(204);
+    expect(none.text).toBe('');
+    expect((await request(app).post('/api/v1/auth/refresh').set('Cookie', 'mb_rt=not-a-real-token')).status).toBe(401);
+  });
+
   it('rotates the refresh token and issues a working access token', async () => {
     const s = await login(app, 'staff@test.local');
     const res = await request(app).post('/api/v1/auth/refresh').set('Cookie', s.cookie);

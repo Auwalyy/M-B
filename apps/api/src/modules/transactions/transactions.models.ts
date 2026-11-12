@@ -191,5 +191,6 @@ const deliverySchema = new Schema<IDelivery>(
   { timestamps: true, optimisticConcurrency: true },
 );
 deliverySchema.index({ branch: 1, status: 1, updatedAt: -1 });
+deliverySchema.index({ status: 1, updatedAt: -1 });
 export const Delivery = model<IDelivery>('Delivery', deliverySchema);
 export type DeliveryDoc = HydratedDocument<IDelivery>;

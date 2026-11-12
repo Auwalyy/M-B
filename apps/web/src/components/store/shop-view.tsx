@@ -127,7 +127,9 @@ export async function ShopView({ params, basePath, fixedCategory, heading, intro
           </div>
         </form>
 
-        <section aria-label="Products">
+        <section aria-labelledby="shop-products">
+          {/* Keeps the heading outline in order: page title (h1), this list (h2), each product card (h3). */}
+          <h2 id="shop-products" className="sr-only">Products</h2>
           <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-ink-muted" aria-live="polite">
               {result ? `${result.meta.total} product${result.meta.total === 1 ? '' : 's'}` : ''}{params.q ? ` for “${params.q}”` : ''}

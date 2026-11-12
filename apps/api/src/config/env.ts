@@ -66,6 +66,17 @@ const schema = z
     OUTBOX_POLL_MS: z.coerce.number().int().min(250).default(3000),
     API_DOCS_ENABLED: bool.optional(),
   })
+  .superRefine((env, ctx) => {
+    if (env.NODE_ENV !== 'production') return;
+    // Refuse to start production with development values.
+    const issue = (path: string, message: string) => ctx.addIssue({ code: 'custom', path: [path], message });
+    if (/change-me|dev-only|example/i.test(env.JWT_ACCESS_SECRET) || env.JWT_ACCESS_SECRET.length < 48) issue('JWT_ACCESS_SECRET', 'Use a unique random secret of at least 48 characters in production');
+    if (!env.WEB_URL.startsWith('https://')) issue('WEB_URL', 'Must be an https:// address in production');
+    if (env.COOKIE_SECURE === false) issue('COOKIE_SECURE', 'Refresh cookies must be secure in production');
+    if (env.PAYSTACK_SECRET_KEY?.startsWith('sk_test_') && !env.WEB_URL.includes('staging')) {
+      console.warn('Warning: PAYSTACK_SECRET_KEY is a test key; card payments will not take real money.');
+    }
+  })
   .transform((env) => ({
     ...env,
     isProd: env.NODE_ENV === 'production',
@@ -79,6 +90,8 @@ const schema = z
   }));
 
 export type Env = z.output<typeof schema>;
+/** Exported for tests of the production guards. */
+export const envSchema = schema;
 
 function load(): Env {
   const parsed = schema.safeParse(process.env);

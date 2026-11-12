@@ -61,6 +61,12 @@ export function imageUrl(url: string | null | undefined, width: number): string 
   return m ? `${m[1]}f_auto,q_auto,c_limit,w_${width}/${m[2]}` : url;
 }
 
+/** A srcset of resized Cloudinary versions, so phones download small files. Undefined for other URLs. */
+export function imageSrcSet(url: string | null | undefined, widths: number[]): string | undefined {
+  if (!url || !url.startsWith('https://res.cloudinary.com/')) return undefined;
+  return widths.map((w) => `${imageUrl(url, w)} ${w}w`).join(', ');
+}
+
 /** "250,000" or "1,250.50" -> kobo. Returns null for empty or invalid input. */
 export function parseNaira(input: string): number | null {
   const cleaned = input.replace(/[₦,\s]/g, '');

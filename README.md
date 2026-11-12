@@ -8,7 +8,7 @@ Multi-branch retail and e-commerce platform for Mudassir & Brothers (Kano and Ab
 | REST API | [apps/api](apps/api) | Node.js, Express 5, MongoDB (Mongoose 9), Zod 4 |
 | Shared contracts | [packages/shared](packages/shared) | Zod schemas, enums, permissions and DTO types used by both apps |
 
-Design and roadmap: [docs/FOUNDATION.md](docs/FOUNDATION.md) · API conventions: [docs/API.md](docs/API.md) · Deployment: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)
+Design and roadmap: [docs/FOUNDATION.md](docs/FOUNDATION.md) · API conventions: [docs/API.md](docs/API.md) · Deployment: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) · Security review: [docs/SECURITY.md](docs/SECURITY.md)
 
 ## Requirements
 
@@ -58,6 +58,8 @@ Set `CLOUDINARY_URL` in `apps/api/.env`. Copy it from the Cloudinary dashboard (
 | `npm run lint` · `npm run typecheck` | Static checks |
 | `npm run build` | Production builds of the API (`apps/api/dist`) and the web app |
 | `npm run seed -- --reset` | Wipe the development database and seed it again |
+| `npm run e2e` | End-to-end and accessibility tests in a real browser, against a throwaway copy of the whole system (starts its own database, API and web app; uses your installed Chrome, or run `npm run e2e:install -w @mb/e2e` once for Playwright's Chromium and set `E2E_BROWSER=chromium`) |
+| `npm run bootstrap` | Prepare a database for a release: indexes, roles and settings (safe to repeat) |
 
 > **Windows note:** npm runs scripts through `cmd.exe`, which breaks when the folder path contains `&` (such as `M&B`). Either clone into a folder without `&` (for example `M-B`), or run `npm config set script-shell "C:\\Program Files\\Git\\bin\\bash.exe"`.
 
@@ -70,4 +72,4 @@ Built in phases (see the roadmap in [docs/FOUNDATION.md](docs/FOUNDATION.md#5-de
 - [x] **Phase 3: E-commerce.** Storefront (home, shop with filters, category and product pages with branch availability, search, about, SEO and sitemap), server-side cart with guest checkout, promotions, delivery areas, checkout that holds stock, order tracking, customer order history and cancellation, staff order list
 - [x] **Phase 4: Transactions.** Order workflow (confirm → prepare → ready or dispatched → completed) with stock sold at hand-over, staff-created orders, reservations (hold, confirm, reject, expiry, convert to order), payments (Paystack card payments verified server-side and by signed webhook; cash, POS and bank transfer with confirmation; refunds with optional restock; receipts; balances), deliveries and riders, in-app and email notifications, WhatsApp Cloud API template messages (when configured), WhatsApp click logging, enquiry-to-sale conversion, background jobs for expiry
 - [x] **Phase 5: Analytics.** Head-office and branch dashboards (gross sales, collected revenue, orders, average order, units sold, outstanding balance, stock value, new customers, each against the previous period), sales chart by day, week or month, branch comparison, best sellers, low stock, latest orders and payments, a "needs attention" list; sales, inventory, customer and payment reports with CSV download
-- [ ] Phase 6: Hardening, end-to-end tests, production deployment
+- [x] **Phase 6: Quality and deployment.** OWASP API Top 10 security review with attack tests, production configuration guards, Content-Security-Policy and HSTS, dependency audit in CI; query-plan tests that keep every busy query on an index; responsive images; Lighthouse 90+ on mobile storefront pages; end-to-end and axe accessibility suite (desktop and mobile) in CI; Docker images, VPS setup with automatic HTTPS, Render blueprint, PM2 config, release bootstrap, backups, monitoring and rollback guide

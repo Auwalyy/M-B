@@ -33,7 +33,7 @@
   --color-line-strong: #d4d0c4;
   --color-ink: #1c2421;
   --color-ink-muted: #5f6964;
-  --color-ink-faint: #8a928e;
+  --color-ink-faint: #69716d; /* 4.6:1 on the canvas: readable as small text */
 
   --color-danger-50: #fdf0ee;
   --color-danger-600: #c0392b;

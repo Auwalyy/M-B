@@ -76,6 +76,7 @@ const movementSchema = new Schema<IInventoryMovement>(
   { timestamps: { createdAt: true, updatedAt: false }, versionKey: false },
 );
 movementSchema.index({ branch: 1, createdAt: -1 });
+movementSchema.index({ createdAt: -1 });
 movementSchema.index({ inventory: 1, createdAt: -1 });
 movementSchema.index({ product: 1, createdAt: -1 });
 movementSchema.index({ 'reference.kind': 1, 'reference.id': 1 });

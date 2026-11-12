@@ -67,7 +67,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
+    // The fallback is server-rendered, so the heading paints before JavaScript loads.
+    <Suspense
+      fallback={
+        <>
+          <h1 className="text-2xl font-bold tracking-tight">Sign in</h1>
+          <p className="mt-1 text-sm text-ink-muted">Use your email address or phone number.</p>
+          <div className="mt-6 h-64" aria-hidden />
+        </>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

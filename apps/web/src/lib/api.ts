@@ -61,6 +61,11 @@ export function refreshSession(): Promise<AuthResponseDto | null> {
     try {
       for (let attempt = 0; attempt < 2; attempt++) {
         const res = await fetch(`${API_BASE}/auth/refresh`, { method: 'POST', credentials: 'same-origin' });
+        // 204: no refresh cookie, so this visitor is simply signed out.
+        if (res.status === 204) {
+          setSession(null);
+          return null;
+        }
         if (res.ok) {
           const body = (await res.json()) as { data: AuthResponseDto };
           setSession(body.data);

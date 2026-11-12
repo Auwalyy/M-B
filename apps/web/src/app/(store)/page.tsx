@@ -75,7 +75,7 @@ export default async function HomePage() {
                 <Tag className="h-4 w-4" aria-hidden />
                 <strong>{promoText(p)}</strong> {p.name}
                 {p.code && <span>· use code <code className="rounded bg-white px-1.5 py-0.5 font-bold">{p.code}</code></span>}
-                {p.minOrderAmount && <span className="text-accent-600">on orders over {formatNaira(p.minOrderAmount)}</span>}
+                {p.minOrderAmount && <span className="text-accent-700">on orders over {formatNaira(p.minOrderAmount)}</span>}
               </li>
             ))}
           </ul>

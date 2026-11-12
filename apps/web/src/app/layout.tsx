@@ -23,6 +23,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en-NG" className={jakarta.variable}>
+      <head>
+        {/* Must run before any bundle: tells Zod not to probe for eval(), which the Content-Security-Policy blocks. */}
+        <script dangerouslySetInnerHTML={{ __html: 'globalThis.__zod_globalConfig={jitless:true};' }} />
+      </head>
       <body className="min-h-dvh font-sans antialiased">
         <Providers>{children}</Providers>
       </body>

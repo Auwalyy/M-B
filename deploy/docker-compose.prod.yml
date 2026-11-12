@@ -1,0 +1,58 @@
+# Single-server production setup (a VPS): API + web behind Caddy, which gets and renews HTTPS
+# certificates automatically. The database is MongoDB Atlas (recommended), set in api.env.
+#
+#   cp deploy/api.env.example deploy/api.env       # fill in real values; never commit it
+#   export DOMAIN=mudassirbrothers.com
+#   docker compose -f deploy/docker-compose.prod.yml build
+#   docker compose -f deploy/docker-compose.prod.yml run --rm api node dist/scripts/bootstrap.js
+#   docker compose -f deploy/docker-compose.prod.yml up -d
+#
+# See docs/DEPLOYMENT.md for the full procedure, backups and rollbacks.
+name: mudassir
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+    env_file: api.env
+    environment:
+      NODE_ENV: production
+      PORT: '4100'
+      TRUST_PROXY: '1'
+    restart: unless-stopped
+    expose: ['4100']
+    read_only: true
+    tmpfs: ['/tmp']
+    security_opt: ['no-new-privileges:true']
+    logging: { driver: json-file, options: { max-size: '20m', max-file: '5' } }
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_URL: http://api:4100
+        NEXT_PUBLIC_SITE_URL: https://www.${DOMAIN:?set DOMAIN}
+    depends_on:
+      api: { condition: service_healthy }
+    restart: unless-stopped
+    expose: ['3000']
+    security_opt: ['no-new-privileges:true']
+    logging: { driver: json-file, options: { max-size: '20m', max-file: '5' } }
+
+  caddy:
+    image: caddy:2.10-alpine
+    depends_on: [web]
+    restart: unless-stopped
+    ports: ['80:80', '443:443', '443:443/udp']
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  caddy-data:
+  caddy-config:

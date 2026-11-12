@@ -243,6 +243,8 @@ orderSchema.index({ customer: 1, createdAt: -1 });
 orderSchema.index({ confirmedAt: 1, branch: 1 });
 orderSchema.index({ completedAt: 1, branch: 1 });
 orderSchema.index({ createdAt: -1 });
+// Head-office counts by status across every branch.
+orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ idempotencyKey: 1 }, { unique: true, partialFilterExpression: { idempotencyKey: { $type: 'string' } } });
 orderSchema.index({ 'promotion.id': 1, customer: 1 });

@@ -1,0 +1,41 @@
+# Render blueprint for the API (the web app goes on Vercel). Secrets marked `sync: false`
+# are entered in the Render dashboard, never committed.
+services:
+  - type: web
+    name: mudassir-api
+    runtime: docker
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    region: frankfurt
+    plan: starter
+    healthCheckPath: /health/ready
+    # Builds indexes and checks roles before each release goes live.
+    preDeployCommand: node dist/scripts/bootstrap.js
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: '1'
+      - key: MONGODB_URI
+        sync: false
+      - key: WEB_URL
+        sync: false
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: SMTP_URL
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: CLOUDINARY_URL
+        sync: false
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: WHATSAPP_TOKEN
+        sync: false
+      - key: WHATSAPP_PHONE_NUMBER_ID
+        sync: false
+      - key: WHATSAPP_APP_SECRET
+        sync: false
+      - key: WHATSAPP_VERIFY_TOKEN
+        sync: false

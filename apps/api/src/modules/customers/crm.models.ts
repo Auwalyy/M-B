@@ -94,6 +94,7 @@ const enquirySchema = new Schema<IEnquiry>(
   { timestamps: true },
 );
 enquirySchema.index({ branch: 1, status: 1, createdAt: -1 });
+enquirySchema.index({ status: 1, createdAt: -1 });
 enquirySchema.index({ assignedTo: 1, status: 1 });
 enquirySchema.index({ customer: 1, createdAt: -1 });
 enquirySchema.index({ 'contact.phone': 1 });

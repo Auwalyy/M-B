@@ -64,7 +64,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <div className="grid gap-8 lg:grid-cols-2">
         <Gallery images={product.images} name={product.name} />
         <div>
-          {product.brand && <p className="text-sm font-semibold tracking-wide text-accent-600 uppercase">{product.brand.name}</p>}
+          {product.brand && <p className="text-sm font-semibold tracking-wide text-accent-700 uppercase">{product.brand.name}</p>}
           <h1 className="mt-1 text-2xl font-bold tracking-tight sm:text-3xl">{product.name}</h1>
           <p className="mt-1 text-sm text-ink-faint">SKU {product.sku}</p>
           <Purchase product={product} availability={availability ?? []} companyName={settings?.companyName ?? 'Mudassir & Brothers'} />

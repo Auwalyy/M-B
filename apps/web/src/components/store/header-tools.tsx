@@ -49,7 +49,7 @@ export function CartButton() {
     <Link href="/cart" className="relative inline-flex h-10 w-10 items-center justify-center rounded-full text-ink-muted hover:bg-black/5 hover:text-ink" aria-label={`Cart, ${count} item${count === 1 ? '' : 's'}`}>
       <ShoppingBag className="h-5 w-5" />
       {count > 0 && (
-        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-500 px-1 text-[11px] font-bold text-white" aria-hidden>
+        <span className="absolute -top-0.5 -right-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent-600 px-1 text-[11px] font-bold text-white" aria-hidden>
           {count > 99 ? '99+' : count}
         </span>
       )}

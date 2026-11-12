@@ -5,7 +5,7 @@ import { isOpen, lagosNow } from '@/components/store/open-status';
 import { ApiError, buildUrl, getAccessToken, refreshSession, request, setSession } from './api';
 import { activeHref, visibleNav } from './nav';
 import { homeFor, safeNext } from './redirects';
-import { generatePassword } from './utils';
+import { generatePassword, imageSrcSet } from './utils';
 
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
@@ -49,6 +49,15 @@ describe('api client', () => {
       .mockResolvedValueOnce(json(200, session('t2')));
     vi.stubGlobal('fetch', fetchMock);
     expect((await refreshSession())?.accessToken).toBe('t2');
+  });
+
+  it('treats a 204 refresh as signed out, without retrying', async () => {
+    setSession(session('old').data);
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await refreshSession()).toBeNull();
+    expect(getAccessToken()).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('surfaces API errors with code, message and field details', async () => {
@@ -140,5 +149,16 @@ describe('money and image helpers', () => {
     );
     expect(imageUrl('/uploads/products/a.jpg', 400)).toBe('/uploads/products/a.jpg');
     expect(imageUrl(null, 400)).toBeNull();
+  });
+});
+
+describe('imageSrcSet', () => {
+  it('lists resized Cloudinary versions and skips other URLs', () => {
+    const url = 'https://res.cloudinary.com/demo/image/upload/v1/mudassir/tv.jpg';
+    expect(imageSrcSet(url, [240, 480])).toBe(
+      'https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_240/v1/mudassir/tv.jpg 240w, https://res.cloudinary.com/demo/image/upload/f_auto,q_auto,c_limit,w_480/v1/mudassir/tv.jpg 480w',
+    );
+    expect(imageSrcSet('/uploads/tv.jpg', [240])).toBeUndefined();
+    expect(imageSrcSet(null, [240])).toBeUndefined();
   });
 });

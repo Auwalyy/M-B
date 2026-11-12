@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { env } from './env';
 import { logger } from './logger';
 
 // Operations inside connection.transaction() automatically join the transaction session,
@@ -13,7 +14,8 @@ export async function connectDatabase(uri: string, dbName?: string): Promise<typ
   await mongoose.connect(uri, {
     dbName,
     serverSelectionTimeoutMS: 10_000,
-    autoIndex: true,
+    // Production builds indexes in `npm run bootstrap` at deploy time, not on every start.
+    autoIndex: !env.isProd,
   });
   logger.info({ db: mongoose.connection.name }, 'MongoDB connected');
   return mongoose;

@@ -22,6 +22,7 @@ await build({
     server: 'src/server.ts',
     'scripts/seed': 'src/scripts/seed.ts',
     'scripts/create-super-admin': 'src/scripts/create-super-admin.ts',
+    'scripts/bootstrap': 'src/scripts/bootstrap.ts',
   },
   outdir: 'dist',
 });

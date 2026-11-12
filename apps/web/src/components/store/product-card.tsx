@@ -1,7 +1,7 @@
 import { type PublicProductDto, formatNaira } from '@mb/shared';
 import { Package } from 'lucide-react';
 import Link from 'next/link';
-import { imageUrl } from '@/lib/utils';
+import { imageSrcSet, imageUrl } from '@/lib/utils';
 
 export function Price({ price, discountPrice, size = 'md' }: { price: number; discountPrice: number | null; size?: 'md' | 'lg' }) {
   const sale = discountPrice != null && discountPrice < price;
@@ -25,7 +25,7 @@ export function ProductCard({ p, priority }: { p: PublicProductDto; priority?: b
     <Link href={`/products/${p.slug}`} className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface transition-shadow hover:shadow-pop focus-visible:shadow-pop">
       <div className="relative aspect-square bg-subtle">
         {img ? (
-          <img src={img} alt={p.images[0]?.alt ?? p.name} loading={priority ? 'eager' : 'lazy'} className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03]" />
+          <img src={img} srcSet={imageSrcSet(p.images[0]?.url, [240, 360, 480, 720])} sizes="(min-width: 1280px) 280px, (min-width: 640px) 33vw, 50vw" alt={p.images[0]?.alt ?? p.name} loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async" className="h-full w-full object-contain p-3 transition-transform duration-300 group-hover:scale-[1.03]" />
         ) : (
           <span className="flex h-full items-center justify-center text-ink-faint"><Package className="h-10 w-10" aria-hidden /></span>
         )}

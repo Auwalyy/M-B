@@ -40,7 +40,7 @@ export function BranchCard({ branch, companyName = 'Mudassir & Brothers' }: { br
     <article className="flex h-full flex-col rounded-xl border border-line bg-surface p-5 shadow-card">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold tracking-wide text-accent-600 uppercase">{branch.state === 'FCT' ? 'Abuja' : branch.state}</p>
+          <p className="text-xs font-semibold tracking-wide text-accent-700 uppercase">{branch.state === 'FCT' ? 'Abuja' : branch.state}</p>
           <h3 className="mt-0.5 text-lg font-bold text-ink">{branch.name}</h3>
         </div>
         <OpenStatus hours={branch.openingHours} />

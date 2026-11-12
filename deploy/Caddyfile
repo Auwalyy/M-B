@@ -1,0 +1,18 @@
+# HTTPS front door. Caddy obtains and renews certificates automatically.
+# Browsers only ever talk to the web app; it proxies /api/* to the API on the private network.
+# Payment and WhatsApp webhooks arrive on the same domain: https://www.{$DOMAIN}/api/v1/webhooks/...
+
+{$DOMAIN} {
+	redir https://www.{$DOMAIN}{uri} permanent
+}
+
+www.{$DOMAIN} {
+	encode zstd gzip
+	# Next.js sets the security headers; keep Caddy from advertising itself.
+	header -Server
+	reverse_proxy web:3000
+	log {
+		output stdout
+		format json
+	}
+}

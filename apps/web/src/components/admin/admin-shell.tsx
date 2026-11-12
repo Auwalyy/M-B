@@ -35,7 +35,7 @@ function Sidebar({ user, onNavigate }: { user: AuthUserDto; onNavigate?: () => v
       <nav aria-label="Admin" className="flex-1 space-y-6 overflow-y-auto px-3 pb-6">
         {nav.map((section, i) => (
           <div key={section.title ?? i}>
-            {section.title && <p className="mb-1.5 px-3 text-[11px] font-semibold tracking-wider text-brand-400 uppercase">{section.title}</p>}
+            {section.title && <p className="mb-1.5 px-3 text-[11px] font-semibold tracking-wider text-brand-300 uppercase">{section.title}</p>}
             <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const isActive = item.href === active;
@@ -70,7 +70,8 @@ function UserMenu({ user }: { user: AuthUserDto }) {
   const initials = user.fullName.split(' ').map((p) => p[0]).slice(0, 2).join('').toUpperCase();
   return (
     <DM.Root>
-      <DM.Trigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-black/5" aria-label="Account menu">
+      <DM.Trigger className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-black/5">
+        <span className="sr-only">Account menu: </span>
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-100 text-xs font-bold text-accent-700">{initials}</span>
         <span className="hidden text-left sm:block">
           <span className="block max-w-40 truncate text-sm font-semibold text-ink">{user.fullName}</span>

@@ -43,6 +43,7 @@ Every response carries an `X-Request-Id` header. Quote it when reporting a probl
 2. Send `Authorization: Bearer <accessToken>` on every call. Access tokens last 15 minutes.
 3. On `401 TOKEN_INVALID`, call `POST /auth/refresh`. It rotates the refresh cookie and returns a new access token. If an already-used refresh token is presented after the 30-second grace window, the whole session is revoked.
 4. `POST /auth/logout` revokes the session.
+5. `POST /auth/refresh` with no refresh cookie at all answers **204** with no body: the visitor is simply signed out. A missing session never logs an error in the browser.
 
 Each request reloads the session and the user. Sign-out, deactivation, role edits and branch changes therefore apply on the very next request.
 

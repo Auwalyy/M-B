@@ -17,3 +17,6 @@ test-results/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# Production secrets for deploy/docker-compose.prod.yml
+deploy/api.env
