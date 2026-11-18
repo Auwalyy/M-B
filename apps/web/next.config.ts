@@ -4,6 +4,15 @@ import { securityHeaders } from './security-headers';
 
 /** Where the API runs. The browser never calls it directly: /api/* is proxied, so cookies stay first-party. */
 const API_URL = process.env.API_URL ?? 'http://127.0.0.1:4100';
+
+// The proxy address is fixed at build time. On a hosted build (Vercel), a missing or local API_URL
+// would produce a site that looks fine but whose every /api call fails, so stop the build instead.
+if (process.env.VERCEL && (!process.env.API_URL || /^https?:\/\/(127\.0\.0\.1|localhost)/.test(API_URL))) {
+  throw new Error(
+    'API_URL is not set to the public API address. In Vercel → Settings → Environment Variables, set API_URL ' +
+      '(for example https://m-b-vvmz.onrender.com), then deploy again.',
+  );
+}
 const repoRoot = path.resolve(process.cwd(), '../..');
 
 const nextConfig: NextConfig = {

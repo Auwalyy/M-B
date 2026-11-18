@@ -196,18 +196,34 @@ export async function refundPayment(auth: AuthContext, id: string, input: z.outp
       }
     }
     await recomputePayments(order);
-    if (order.status === 'completed') {
-      await Customer.updateOne({ _id: order.customer }, { $inc: { 'stats.totalSpent': -input.amount } });
-      if (restock || order.amountPaid <= 0) {
-        order.statusHistory.push({ from: 'completed', to: 'refunded', by: new Types.ObjectId(auth.userId), at: new Date(), note: input.reason });
-        order.status = 'refunded';
-      }
-    }
+    // A card refund is only pending until Paystack confirms it (handlePaystackWebhook applies it then).
+    if (p.method !== 'paystack') settleCompletedOrderRefund(order, input.amount, restock, auth.userId, input.reason);
     await order.save();
+    await syncSpent(order, p.method === 'paystack' ? 0 : input.amount);
     await notifyCustomer(order.customer, { type: 'payment.refund', title: `Refund for ${order.reference}`, body: `A refund of ${naira(input.amount)} for order ${order.reference} has been ${p.method === 'paystack' ? 'started. It usually reaches your card within a few working days' : 'made'}.`, link: `/account/orders/${order.reference}`, contactEmail: order.contact.email, branch: order.branch });
     await audit({ action: 'payment.refunded', actor: auth, branch: p.branch, entity: { kind: 'Payment', id: p._id, label: p.reference }, meta: { amount: input.amount, reason: input.reason, restock } }, meta);
   });
   return load(id);
+}
+
+/**
+ * Effects of money actually returned on a completed sale: the order becomes refunded when the goods came back
+ * or nothing is left paid. Call only once the refund is processed (immediately for cash, POS and transfer;
+ * on Paystack's confirmation for cards), so a failed card refund never marks the order as refunded.
+ */
+function settleCompletedOrderRefund(order: OrderDoc, amount: number, restock: boolean, by: string | null, reason: string) {
+  if (order.status !== 'completed' || amount <= 0) return;
+  if (restock || order.amountPaid <= 0) {
+    order.statusHistory.push({ from: 'completed', to: 'refunded', by: by ? new Types.ObjectId(by) : null, at: new Date(), note: reason });
+    order.status = 'refunded';
+  }
+}
+
+/** Lowers the customer's lifetime spend by a processed refund on a completed or refunded sale. */
+async function syncSpent(order: Pick<OrderDoc, 'status' | 'customer'>, refunded: number) {
+  if (refunded > 0 && (order.status === 'completed' || order.status === 'refunded')) {
+    await Customer.updateOne({ _id: order.customer }, { $inc: { 'stats.totalSpent': -refunded } });
+  }
 }
 
 // ------------------------------------------------------------------ Paystack
@@ -299,7 +315,17 @@ export async function handlePaystackWebhook(raw: Buffer | undefined, signature: 
       const order = await Order.findById(payment.order);
       if (order) {
         await recomputePayments(order);
+        if (refund.status === 'processed') settleCompletedOrderRefund(order, refund.amount, refund.restock, null, refund.reason);
         await order.save();
+        if (refund.status === 'processed') await syncSpent(order, refund.amount);
+        else {
+          await notifyBranchTeam(order.branch, P.PAYMENTS_REFUND, {
+            type: 'payment.refund_failed',
+            title: `Card refund failed for ${order.reference}`,
+            body: `Paystack could not refund ${naira(refund.amount)} on order ${order.reference}. The customer has not been paid back; refund them another way or try again.`,
+            link: `/admin/orders/${order._id.toString()}`,
+          }, true);
+        }
       }
     }
   }

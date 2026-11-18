@@ -86,10 +86,15 @@ function Tracker() {
                 <OrderStatusBadge status={result.data.status} />
               </div>
               <OrderProgress status={result.data.status} fulfilment={result.data.fulfilment} history={result.data.history} />
-              {result.data.status === 'pending' && (
+              {result.data.outstanding > 0 && (
                 <div className="space-y-3">
-                  <PayByCardButton reference={ref} phone={normalizePhone(phone) ?? undefined} amount={result.data.total} />
-                  <BankTransferDetails amount={result.data.total} reference={ref} />
+                  {result.data.amountPaid > 0 && (
+                    <p className="text-sm">
+                      Paid {formatNaira(result.data.amountPaid)} of {formatNaira(result.data.total)}. <strong>{formatNaira(result.data.outstanding)} still to pay.</strong>
+                    </p>
+                  )}
+                  <PayByCardButton reference={ref} phone={normalizePhone(phone) ?? undefined} amount={result.data.outstanding} />
+                  <BankTransferDetails amount={result.data.outstanding} reference={ref} />
                 </div>
               )}
             </>

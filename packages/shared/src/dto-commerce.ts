@@ -139,6 +139,10 @@ export interface OrderTrackingDto {
   branch: { name: string; phone: string; whatsapp: string; address: string };
   itemCount: number;
   total: number;
+  /** Paid so far, net of refunds. */
+  amountPaid: number;
+  /** Still to pay; what a card or transfer payment from the tracking page would cover. */
+  outstanding: number;
   history: { status: OrderStatus; at: string }[];
   createdAt: string;
 }

@@ -83,6 +83,15 @@ describe('order workflow', () => {
     expect(receipt.body.data).toMatchObject({ total: TV_PRICE, amountPaid: TV_PRICE, outstanding: 0, payments: [{ method: 'cash', amount: TV_PRICE }] });
   });
 
+  it('public tracking shows what is still owed after a part-payment, and nothing once cancelled', async () => {
+    const o = (await staffOrder()).body.data;
+    await pay(o.id, 10_000_000);
+    const track = () => request(app).get('/api/v1/orders/track').query({ reference: o.reference, phone: '08031110000' });
+    expect((await track()).body.data).toMatchObject({ status: 'confirmed', total: TV_PRICE, amountPaid: 10_000_000, outstanding: TV_PRICE - 10_000_000 });
+    await as(app, world.sessions.kanoAdmin).post(`/api/v1/orders/${o.id}/cancel`, { reason: 'Changed mind' });
+    expect((await track()).body.data).toMatchObject({ status: 'cancelled', outstanding: 0 });
+  });
+
   it('a staff member cannot overpay an order, and sales staff only see their own orders', async () => {
     const o = (await staffOrder()).body.data;
     expect((await pay(o.id, TV_PRICE + 1)).body.error.code).toBe('OVERPAYMENT');
@@ -243,6 +252,36 @@ describe('Paystack', () => {
     await webhook({ event: 'refund.processed', data: { id: 555, transaction_reference: reference, amount: 1_000_000 } });
     expect((await Payment.findOne({ reference }).lean())!.refunds[0]!.status).toBe('processed');
     expect((await Order.findById(order.id).lean())).toMatchObject({ amountPaid: TV_PRICE - 1_000_000, paymentStatus: 'partially_refunded' });
+  });
+
+  it('a failed card refund leaves the completed sale and the customer total untouched, and alerts the branch', async () => {
+    const { order, reference } = await startPayment();
+    verifyReturns(reference, { status: 'success', amount: TV_PRICE });
+    await request(app).get(`/api/v1/payments/paystack/verify/${reference}`);
+    for (const to of ['processing', 'ready_for_pickup', 'completed']) await as(app, world.sessions.kanoAdmin).post(`/api/v1/orders/${order.id}/status`, { to });
+    const customerId = (await Order.findById(order.id).lean())!.customer;
+    const spent = async () => (await Customer.findById(customerId).lean())!.stats.totalSpent;
+    expect(await spent()).toBe(TV_PRICE);
+    const payment = await Payment.findOne({ reference }).lean();
+
+    setPaystackFetch(vi.fn().mockResolvedValue(json(200, { status: true, data: { id: 777, status: 'pending', amount: TV_PRICE } })));
+    await as(app, world.sessions.kanoAdmin).post(`/api/v1/payments/${payment!._id}/refunds`, { amount: TV_PRICE, reason: 'Faulty' });
+    // Pending at Paystack: nothing has been paid back yet.
+    expect((await Order.findById(order.id).lean())!.status).toBe('completed');
+    expect(await spent()).toBe(TV_PRICE);
+
+    await webhook({ event: 'refund.failed', data: { id: 777, transaction_reference: reference, amount: TV_PRICE } });
+    expect((await Payment.findOne({ reference }).lean())!.refunds[0]!.status).toBe('failed');
+    expect((await Order.findById(order.id).lean())).toMatchObject({ status: 'completed', amountPaid: TV_PRICE, paymentStatus: 'paid' });
+    expect(await spent()).toBe(TV_PRICE);
+    expect(await Notification.countDocuments({ type: 'payment.refund_failed' })).toBeGreaterThan(0);
+
+    // Trying again and succeeding refunds the sale and lowers the customer's total once.
+    setPaystackFetch(vi.fn().mockResolvedValue(json(200, { status: true, data: { id: 778, status: 'pending', amount: TV_PRICE } })));
+    await as(app, world.sessions.kanoAdmin).post(`/api/v1/payments/${payment!._id}/refunds`, { amount: TV_PRICE, reason: 'Faulty, second try' });
+    await webhook({ event: 'refund.processed', data: { id: 778, transaction_reference: reference, amount: TV_PRICE } });
+    expect((await Order.findById(order.id).lean())).toMatchObject({ status: 'refunded', amountPaid: 0, paymentStatus: 'refunded' });
+    expect(await spent()).toBe(0);
   });
 });
 

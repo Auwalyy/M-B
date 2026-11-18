@@ -378,6 +378,9 @@ export async function trackOrder(reference: string, phone: string): Promise<Orde
     branch: { name: o.branch.name, phone: o.branch.phone, whatsapp: o.branch.whatsapp, address: `${o.branch.address}, ${o.branch.city}` },
     itemCount: o.items.reduce((n, i) => n + i.quantity, 0),
     total: o.total,
+    amountPaid: Math.max(0, o.amountPaid),
+    // Nothing is owed on cancelled or refunded orders, whatever the arithmetic says.
+    outstanding: ['cancelled', 'refunded'].includes(o.status) ? 0 : outstandingOf(o),
     history: o.statusHistory.map((h) => ({ status: h.to, at: h.at.toISOString() })),
     createdAt: o.createdAt.toISOString(),
   };

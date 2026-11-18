@@ -243,7 +243,7 @@ describe('after the order', () => {
     const other = await login(app, 'sales.abuja@test.local');
     expect((await as(app, other).get(`/api/v1/orders/mine/${order.reference}`)).status).toBe(404);
     const ok = await request(app).get(`/api/v1/orders/track?reference=${order.reference}&phone=0806%20555%200000`);
-    expect(ok.body.data).toMatchObject({ reference: order.reference, status: 'pending', itemCount: 1 });
+    expect(ok.body.data).toMatchObject({ reference: order.reference, status: 'pending', itemCount: 1, amountPaid: 0, outstanding: ok.body.data.total });
     expect(JSON.stringify(ok.body)).not.toMatch(/aisha@example.com/);
     expect((await request(app).get(`/api/v1/orders/track?reference=${order.reference}&phone=08000000000`)).status).toBe(404);
   });
